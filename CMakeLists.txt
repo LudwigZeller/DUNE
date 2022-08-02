@@ -32,7 +32,7 @@ add_subdirectory(${GLFW_DIR})
 include_directories(${GLFW_INCLUDE_DIR})
 
 ###################### Build, Link and Copy ######################
-add_executable(${PROJECT_NAME} ${PROJECT_Files})
+add_executable(${PROJECT_NAME} ${PROJECT_FILES})
 target_link_libraries(${PROJECT_NAME} realsense2.lib ${OPENGL_LIBRARIES} glfw)
 copy_files(${REALSENSE_DLL_FILE})
 
