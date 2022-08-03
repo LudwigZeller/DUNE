@@ -7,16 +7,23 @@ project(DepthCamera)
 include(cmake/utils.cmake)
 
 #################### Add files to compile here ###################
-set(PROJECT_FILES main.cpp)
+set(PROJECT_FILES main.cpp utils.cpp)
+
 ##################################################################
 
 ######################### Set Constants ##########################
+# librealsense2
 set(REALSENSE_INCLUDE_DIR "dependencies/librealsense2/include/")
 set(REALSENSE_LIB_DIR "dependencies/librealsense2/lib/x64")
 set(REALSENSE_DLL_FILE "dependencies/librealsense2/bin/x64/realsense2.dll")
 
+# GLFW
 set(GLFW_DIR "dependencies/glfw")
 set(GLFW_INCLUDE_DIR "dependencies/glfw/include")
+
+# glad
+set(GLAD_SRC_DIR "dependencies/glad/src")
+set(GLAD_INCLUDE_DIR "dependencies/glad/include")
 
 ######################## Locate Libraries ########################
 # librealsense2
@@ -27,13 +34,18 @@ link_directories(${REALSENSE_LIB_DIR})
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS})
 
-# Glfw
+# GLFW
 add_subdirectory(${GLFW_DIR})
 include_directories(${GLFW_INCLUDE_DIR})
 
+# glad
+include_directories(${GLAD_INCLUDE_DIR})
+set(PROJECT_FILES ${PROJECT_FILES} ${GLAD_SRC_DIR}/glad.c)
+
 ###################### Build, Link and Copy ######################
-add_executable(${PROJECT_NAME} ${PROJECT_FILES})
+add_executable(${PROJECT_NAME} ${PROJECT_FILES} ${GLAD_SRC_DIR}/glad.c)
 target_link_libraries(${PROJECT_NAME} realsense2.lib ${OPENGL_LIBRARIES} glfw)
 copy_files(${REALSENSE_DLL_FILE})
+copy_directory(/shader)
 
 
