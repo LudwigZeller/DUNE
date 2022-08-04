@@ -15,7 +15,7 @@
 #include <map>
 #include <functional>
 
-#include "stb_easy_font.h"
+#include "dependencies/stb_easy_font.h"
 
 #ifndef PI
 #define PI  3.14159265358979323846

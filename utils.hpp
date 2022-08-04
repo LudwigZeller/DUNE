@@ -15,6 +15,8 @@
 #include <sstream>
 #include <chrono>
 #include <thread>
+#include <vector>
+#include "dependencies/stb_easy_font.h"
 
 
 
@@ -44,6 +46,24 @@ ShaderProgramSource parseShader(const std::string &path);
 
 unsigned int createShader(const ShaderProgramSource &source);
 
-unsigned int compileShader(unsigned int type, const std::string &source);
+static unsigned int compileShader(unsigned int type, const std::string &source);
+
+inline void draw_text(int x, int y, const char* text)
+{
+    std::vector<char> buffer;
+    buffer.resize(60000); // ~300 chars
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(2, GL_FLOAT, 16, &(buffer[0]) );
+    glDrawArrays( GL_QUADS,
+                  0,
+                  4
+                  * stb_easy_font_print( (float)x,
+                                         (float)( y - 7 ),
+                                         (char *)text,
+                                         nullptr,
+                                         &( buffer[0] ),
+                                         int( sizeof( char ) * buffer.size() ) ) );
+    glDisableClientState(GL_VERTEX_ARRAY);
+}
 
 #endif //DEPTHCAMERA_UTILS_HPP

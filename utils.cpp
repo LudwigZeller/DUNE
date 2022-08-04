@@ -15,7 +15,7 @@ void while_timer() {
 
     auto elapsed = duration_cast<milliseconds>(steady_clock::now() - timestamp);
     if (elapsed < milliseconds(1000 / FPS)) {
-        std::cout << "Sleeping for " << (milliseconds(1000 / FPS) - elapsed).count() << "ms" << std::endl;
+//        std::cout << "Sleeping for " << (milliseconds(1000 / FPS) - elapsed).count() << "ms" << std::endl;
         std::this_thread::sleep_for(milliseconds(1000 / FPS) - elapsed);
     } else {
         std::cerr << "The thread is running " << (elapsed - milliseconds(1000 / FPS)).count() << "ms behind"
