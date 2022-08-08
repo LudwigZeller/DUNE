@@ -8,8 +8,10 @@
 #include "Utilities/Window.hpp"
 #include "Utilities/Texture.hpp"
 
-int main() {
-    Window window{"Intel Realsense", true};
+int main() try {
+    std::cout << "Starting DepthWatch " << VERSION << std::endl;
+
+    Window window{"DepthWatch", FULLSCREEN};
 
     /******************* Intel Realsense ********************/
     rs2::pipeline pipe;
@@ -19,7 +21,7 @@ int main() {
     rs2::colorizer colorizer;
     rs2::rates_printer printer;
 
-    Texture depth_image, color_image;
+    Texture depth_image;
 
     std::string str{};
 
@@ -35,7 +37,7 @@ int main() {
         rs2::frame color = frames.get_color_frame();            // Find the color data
 
         // Render depth on to the first half of the screen and color on to the second
-        depth_image.render(depth, {0, 0, window.width(), window.height()});
+        depth_image.render(color, {0, 0, window.width(), window.height()});
 
 
         str = "Distance: " + std::to_string(dist);
@@ -44,9 +46,20 @@ int main() {
 
         while_timer();
     }
-
-    std::cout << "Review logs ore close program by pressing Enter . . ." << std::endl;
+//    window.close();
+//    while (window);
+//    std::cout << "Review logs ore close program by pressing Enter . . ." << std::endl;
 //    std::cin.get();
 
     return 0;
+}
+catch (const rs2::error & e)
+{
+    std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
+    return EXIT_FAILURE;
+}
+catch (const std::exception& e)
+{
+    std::cerr << e.what() << std::endl;
+    return EXIT_FAILURE;
 }
