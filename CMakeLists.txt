@@ -2,12 +2,15 @@
 ################## Build Script for DepthCamera ##################
 ##################################################################
 cmake_minimum_required(VERSION 3.1.0)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 project(DepthCamera)
 include(cmake/utils.cmake)
 
 #################### Add files to compile here ###################
-set(PROJECT_FILES main.cpp utils.cpp)
+set(PROJECT_FILES main.cpp
+        Utilities/utils.cpp
+        Utilities/Window.cpp
+        Utilities/Texture.cpp)
 ##################################################################
 
 ######################### Set Constants ##########################
@@ -16,7 +19,7 @@ set(REALSENSE_INCLUDE_DIR "dependencies/librealsense2/include/")
 if (MSVC)
     set(REALSENSE_LIB_DIR "dependencies/librealsense2/lib/x64")
     set(REALSENSE_DLL_FILE "dependencies/librealsense2/bin/x64/realsense2.dll")
-else()
+else ()
     set(REALSENSE_LIB_DIR "dependencies/librealsense2/lib/x86")
     set(REALSENSE_DLL_FILE "dependencies/librealsense2/bin/x86/realsense2.dll")
 endif ()

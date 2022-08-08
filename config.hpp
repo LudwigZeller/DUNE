@@ -4,7 +4,7 @@
 
 #ifndef DEPTHCAMERA_CONSTANTS_HPP
 
-#define FPS 5
+#define FPS 30
 
 #define DEPTHCAMERA_CONSTANTS_HPP
 
