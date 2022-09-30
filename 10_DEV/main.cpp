@@ -1,68 +1,50 @@
-//// License: Apache 2.0. See LICENSE file in root directory.
-//// Copyright(c) 2017 Intel Corporation. All Rights Reserved.
-//
-//#include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
-//#include <opencv2/opencv.hpp>   // Include OpenCV API
-//#include "Utilities/utils.hpp"
-//#include <iostream>
-//
-//int main(int argc, char *argv[]) try {
-//    // Declare depth colorizer for pretty visualization of depth data
-//    rs2::colorizer color_map;
-//
-//    // Declare RealSense pipeline, encapsulating the actual device and sensors
-//    rs2::pipeline pipe;
-//    // Start streaming with default recommended configuration
-//    pipe.start();
-//
-//    using namespace cv;
-//    const auto window_name = "Display Image";
-//    namedWindow(window_name, WINDOW_AUTOSIZE);
-//
-//    while (waitKey(1) < 0 && getWindowProperty(window_name, WND_PROP_AUTOSIZE) >= 0) {
-//        rs2::frameset data = pipe.wait_for_frames(); // Wait for next set of frames from the camera
-//        rs2::frame depth = data.get_depth_frame().apply_filter(color_map);
-//
-//        // Query frame size (width and height)
-//        const int w = depth.as<rs2::video_frame>().get_width();
-//        const int h = depth.as<rs2::video_frame>().get_height();
-//
-//        // Create OpenCV matrix of size (w,h) from the colorized depth data
-//        Mat image(Size(w, h), CV_8UC3, (void*)depth.get_data(), Mat::AUTO_STEP);
-////        Mat image(Size(100, 100), CV_8UC3, (void *) arr, Mat::AUTO_STEP);
-//        // Update the window with new data
-//
-//        imshow(window_name, image);
-//
-//        while_timer();
-//    }
-//
-//    return EXIT_SUCCESS;
-//}
-//catch (const rs2::error &e) {
-//    std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    "
-//              << e.what() << std::endl;
-//    return EXIT_FAILURE;
-//}
-//catch (const std::exception &e) {
-//    std::cerr << e.what() << std::endl;
-//    return EXIT_FAILURE;
-//}
+/****************************************\
+|      ____    _  _   _   _   ____       |
+|     |  _ \  | || | | \ | | |  __|      |
+|     | | \ \ | || | |  \| | | |_        |
+|     | | | | | || | |     | |  _|       |
+|     | |_/ / | || | | |\  | | |__       |
+|     |____/  \____/ |_| \_| |____|      |
+|                                        |
+|   DUNE - Sandbox Depth Visualizer      |
+|  A project by                          |
+|  Ludwig Zeller and David Schoosleitner |
+|                                        |
+|****************************************|
+|                                        |
+| @file main.cpp                         |
+|                                        |
+| This file is responsible for:          |
+|  - Pipeline and loop                   |
+| This file depends on:                  |
+|  - GLAD                                |
+|  - glfw3 Library                       |
+|  - OpenCV Library                      |
+|  - Intel(R) Real Sense 2 Library       |
+|  - Local Utilities                     |
+|                                        |
+\****************************************/
 
 
+/****************************************\
+|               INCLUDES                 |
+\****************************************/
 
-
-#include "config.hpp"
-#include <glad/glad.h> // Important: Before GLFW
+/*****    DYNAMIC LIBRARY INCLUDE   *****/
+#include <glad/glad.h>                              //< Important: Before GLFW
 #include <GLFW/glfw3.h>
-#include <iostream>
 #include <librealsense2/rs.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/objdetect.hpp>
 
+/***** LOCAL INCLUDE *****/
+#include "config.hpp"
 #include "Utilities/utils.hpp"
 #include "Utilities/Window.hpp"
 #include "Utilities/Texture.hpp"
+
+/*****           MISC                *****/
+#include <iostream>
 
 int main() try {
     std::cout << "Starting DepthWatch " << VERSION << std::endl;
@@ -140,7 +122,6 @@ int main() try {
         str = "Distance: " + std::to_string(dist);
         draw_text_debug(10, 10, str.c_str());
 #endif
-        (void)delta_timestamp_str();
         while_timer();
 
         //This takes roughly 5000ms every time cycle_counter reaches CALIBRATION_LOOP_THRESHOLD
@@ -149,7 +130,6 @@ int main() try {
         //    cycle_counter = 0;
         //    bounds = check_bounds(frames.get_color_frame(), circles);
         //}
-        std::cout << "line 144 to 150 took " << delta_timestamp_str() << " ms" << std::endl;
     }
 
 

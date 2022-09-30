@@ -1,6 +1,8 @@
 # Custom
 .idea
 cmake-build*
+.vscode
+10_DEV/build
 
 # Prerequisites
 *.d
