@@ -7,6 +7,7 @@
 5. [Commenting Declarations and Definitions](#5-commenting-declarations-and-definitions)
     - [5.1. Commenting Downwards](#51-commenting-downwards)
     - [5.2. Commenting to the Left](#52-commenting-to-the-left)
+    - [5.3. Comment block Below](#53-comment-block-below)
 6. [Commenting Spacing](#6-comment-spacing)
 7. [Function Headings](#7-function-headings)
     - [7.1. Comments within Functions](#71-comments-within-functions)
@@ -25,11 +26,11 @@ This file includes examples of norms to commenting and describing lines, such as
 
 **You may copy any commenting template in this file to your heart's content.**
 
-These norms will **not** influence the compiler in any way.
+These norms should **not** influence the compiler to cause errors in any way.
 
-MISRA is a tool that checks if a project contains code that is not acceptable according to its norm. It is used by Automotive firms and industries. Due to the automotive standards, this is very much applicable for the HTL.
+MISRA is a tool that checks if a project contains code that is not acceptable according to its norm. It is used by Automotive firms and industries. Due to "automotive"-label, these norms are very much applicable for the HTL as well.
 
-Follow these examples to commenting files and read their description above:
+Follow these structuring examples and read their description above:
 
 ---
 
@@ -76,7 +77,7 @@ Think of it as a *rough description for humans*:
 ---
 ## **3. Section Division**
 Almost all files have something to #include or #define; something to typedef and declare or intialize.
-It is good practice to divide these into "sections", at least visually.
+It is good practice to visually subdivide these into "sections".
 
 This can be good for readability for humans.
 ```
@@ -151,7 +152,7 @@ Reduce the amount of *'s to subdivide those divisions again.
 ---
 ## **5. Commenting declarations and definitions**
 
-This is how the MISRA norm checker does it. The direction to which is commented to is the first (to 2nd) character in said comment.
+This is not according to MISRA norms but also great practice. The direction to which is commented towards. This is determined by the first (to 2nd) character in said comment.
 
 Usually your IDE supports tooltips via comments either way.
 
@@ -168,15 +169,26 @@ int something = something_else + yes;
 ```
 #define SOMETHING_CONSTANT (10u)        //< XYZ
 ```
+
+### **5.3. Comment block below**
+``` 
+//!! XYZ
+int ct;
+list_t test{};
+std::string str;
+
+//! Some code
+...
+```
 ---
 ## **6. Spacing**
 
-Relevant for readability. Sometimes you are required to write multiple lines of #define to e.g. configurate something (also applies to multiple lines of similar things).
+Relevant for readability. Sometimes you are required to write multiple lines of #define to e.g. configurate something (also applies to multiple lines of declarations and similar).
 
 Since defines, declarations and initializations are usually not a set amount of characters long, you will end up with comments and code starting at different columns.
-Therefore, reading comments for individual lines can be very tasking for the eyes.
+Therefore, reading comments for individual lines can be very straining for the eyes.
 
-Keep your spacing and tabs at an equal distance for all applicable code in a row. However, keeping the same distance for all defines or initializations in a row is **not** suggested.
+Keep your spacing and tabs at an equal distance for all applicable lines in a row. However, keeping the same distance for all defines or initializations in a row is **not** required and **not** suggested.
 
 ```
 #define UINT_CFG_FOR_SOMETHING  (10u)                           //< ABC
@@ -203,7 +215,9 @@ extern static RTE_t RTE =
 
 This is the comment that shows up as a doxygen-markdown tooltip upon hovering on any method.
 
-The comment of a method's **definition** is usually the tooltip that the IDE uses, therefore MISRA norms accept not having to use this type of comment for the **declaration** a second time. 
+The comment of a method's **definition** is usually the tooltip that the IDE uses, therefore MISRA norms accept not having to use this type of comment for the **declaration** a second time.
+
+Explanations to default values or "special return values" can be freely explained, but should be free from interpretation and context.
 
 ```
 /**
@@ -262,7 +276,7 @@ This applies to numerical and logical operators as well.
 ```
 int value_a = (2 * something) - (2 * something_else) + 10 + DEF_ADJUST_INT;
 
-if((value_a == value_b) && (something != (DEF_SOMETHING - 5)))
+if((value_a == value_b) && (something != (INT_DEF_SOMETHING - 5)))
 {
     ...
 ```
@@ -293,11 +307,11 @@ if(statement == true)
 
 Implicit casting is to be avoided. This includes casting to a smaller data types (e.g. int32 to int8), vice versa.
 
-This is to avoid casting errors from the compiler or from the user. A classic example of a mistake would be dividing a float by an integer.
+This is to reduce error susceptability from the compiler or from the user. A classic example of such a mistake would be dividing a float by an integer or an integer by a float.
 
-C++ provides you with the "auto" keyword. You may use it, but make sure to get the R-value right!
+C++ provides you the "auto" keyword. You may use it, but make sure to get the R-value right!
 
-Furthermore, make sure to assign unsigned values to unsigned variables and cast via (signed) or (unsigned) if you have to.
+Furthermore, make sure to assign e.g. unsigned values to unsigned variables with casting via (signed) or (unsigned) if you have to. This may reduce compiler error susceptability or the program using wrong values at the extreme values, such as assigning 128 to an 8-bit *unsigned* integer versus 128u.
 
 ```
 bool result = (bool) int_result;
@@ -313,10 +327,10 @@ unsigned int a = DEF_SOMETHING;
 Defines, includes and pragmas are on the compiler layer and Defines directly convert a text into another text.
 A define within a define is able to expand the parameters which can be helpful for compiler-level concatenation.
 
-It is possible to reduce extremely rare errors via defines and value expansion by putting the define value in () - round brackets as well as define parameters if given.
+It is possible to reduce extremely rare errors via defines and value expansion by putting the define value in () - round brackets as well as bracket-ing the define parameters if given.
 
 ```
-#define UINT_DEF_CONST_VALUE_1 (10u) //< Since this value is also unsigned, make sure to give it a u-suffix.
+#define UINT_DEF_CONST_VALUE_1 (10u) //< Since this value is also supposed to be unsigned, make sure to give it a u-suffix.
 #define UINT_SOME_MACRO(value) (((unsigned int) (value)) * UINT_DEF_CONST_VALUE_1) 
 ```
 ---
