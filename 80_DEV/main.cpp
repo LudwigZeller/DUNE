@@ -31,19 +31,19 @@
 \****************************************/
 
 /*****    DYNAMIC LIBRARY INCLUDE   *****/
-#include <glad/glad.h>                              //< Important: Before GLFW
-#include <GLFW/glfw3.h>
+#include <glad/glad.h>                              //< OpenGL function loader; Important: Before GLFW
+#include <GLFW/glfw3.h>                             //< OpenGL
 #include <librealsense2/rs.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/objdetect.hpp>
 
-/***** LOCAL INCLUDE *****/
+/*****        LOCAL INCLUDE         *****/
 #include "config.hpp"
 #include "Utilities/utils.hpp"
 #include "Utilities/Window.hpp"
 #include "Utilities/Texture.hpp"
 
-/*****           MISC                *****/
+/*****           MISC               *****/
 #include <iostream>
 
 int main() try {
