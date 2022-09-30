@@ -7,6 +7,7 @@
 Window::Window(const char *title, bool fullscreen) {
     /******************* Initialization ********************/
     assert_log(glfwInit(), "GLFW initialization failed");
+    std::cout << "GLFW initialized!" << std::endl;
 
     /******************* Window ********************/
     int count;
@@ -16,8 +17,8 @@ Window::Window(const char *title, bool fullscreen) {
     for (int i = 0; i < count; ++i) {
         std::cout << i << ": " << glfwGetMonitorName(monitors[i]) << std::endl;
 //        TODO:
-//        if (glfwGetMonitorName(monitor[i]) == "/*BEAMER*/")
-//            beamer = monitor[i];
+        if (strcmp(glfwGetMonitorName(monitors[i]), "HDMI-1") == 0)
+            beamer = monitors[i];
     }
     std::cout << "-----" << std::endl;
     GLFWmonitor *monitor;
@@ -32,6 +33,7 @@ Window::Window(const char *title, bool fullscreen) {
                                           title, fullscreen ? monitor : nullptr, nullptr);
 
     assert_log(window, "Window creation failed");
+    std::cout << "Window creation succeeded!" << std::endl;
 
     glfwMakeContextCurrent(window);
     _window = window;
@@ -42,6 +44,7 @@ Window::Window(const char *title, bool fullscreen) {
     /******************* OpenGL Bindings ********************/
     // Need to be loaded after Context
     assert_log(gladLoadGL(), "OpenGL binding failed");
+    std::cout << "OpenGL bindings created!" << std::endl;
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
     /******************* Configuration ********************/
