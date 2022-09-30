@@ -1,16 +1,50 @@
-//
-// Created by Ludwig Zeller on 03.08.2022.
-//
+/****************************************\
+|      ____    _  _   _   _   ____       |
+|     |  _ \  | || | | \ | | |  __|      |
+|     | | \ \ | || | |  \| | | |_        |
+|     | | | | | || | |     | |  _|       |
+|     | |_/ / | || | | |\  | | |__       |
+|     |____/  \____/ |_| \_| |____|      |
+|                                        |
+|   DUNE - Sandbox Depth Visualizer      |
+|  A project by                          |
+|  Ludwig Zeller and David Schoosleitner |
+|                                        |
+|****************************************|
+|                                        |
+| @file main.cpp                         |
+| @author Ludwig Zeller                  |
+|                                        |
+| This file is responsible for:          |
+|  - Configuration for misc. files       |
+| This file depends on:                  |
+|  -                                     |
+|                                        |
+|****************************************|
+|                                        |
+| USED LIBRARIES ARE PROPERTY OF THEIR   |
+| CORRESPECTIVE OWNERS.                  |
+|                                        |
+| SEE COPYRIGHT.md IN PROJECT'S ROOT     |
+| DIRECTORY, AS WELL AS                  |
+| INDIVIDUAL LICENSES AND TOS.           |
+|                                        |
+\****************************************/
 
-#ifndef DEPTHCAMERA_CONSTANTS_HPP
+#ifndef __DEPTHCAMERA_CONSTANTS_HPP_
+#define __DEPTHCAMERA_CONSTANTS_HPP_
 
-#define FPS 12.0f
-#define FULLSCREEN false
-#define CYCLE_COUNTER_AVERAGE 10
-#define CALIBRATION_LOOP_THRESHOLD 10
-#define DEBUG_ON_SCREEN true
-#define VERSION "V1 R4"
 
-#define DEPTHCAMERA_CONSTANTS_HPP
+/****************************************\
+|              DEFINITIONS               |
+\****************************************/
 
-#endif //DEPTHCAMERA_CONSTANTS_HPP
+#define FPS                             (12.0f)         //< Frames per second constant, used to evaluate delta time
+#define FULLSCREEN                      (false)         //< Fullscreen constant for window initialized in main 
+#define FIND_MONITOR_NAME               ("HDMI-1")      //< Screen to be used for the DepthWatch application
+#define CYCLE_COUNTER_AVERAGE           (10)            //< Number of ms/frame to be logged
+#define CALIBRATION_LOOP_THRESHOLD      (10)            //< Number of frames allowed to elapse until calibration cycle
+#define DEBUG_ON_SCREEN                 (true)          //< Do display debug information onscreen
+#define VERSION                         ("V1 R5")       //< Version string literal
+
+#endif //< __DEPTHCAMERA_CONSTANTS_HPP_

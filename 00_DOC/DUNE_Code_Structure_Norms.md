@@ -65,6 +65,15 @@ Think of it as a *rough description for humans*:
 |  - Intel (R) Real Sense 2 Library      |
 |  - Local Utilities                     |
 |                                        |
+|****************************************|
+|                                        |
+| USED LIBRARIES ARE PROPERTY OF THEIR   |
+| CORRESPECTIVE OWNERS.                  |
+|                                        |
+| SEE COPYRIGHT.md IN PROJECT'S ROOT     |
+| DIRECTORY, AS WELL AS                  |
+| INDIVIDUAL LICENSES AND TOS.           |
+|                                        |
 \****************************************/
 
 #ifndef __MAIN_HPP_
@@ -313,6 +322,9 @@ C++ provides you the "auto" keyword. You may use it, but make sure to get the R-
 
 Furthermore, make sure to assign e.g. unsigned values to unsigned variables with casting via (signed) or (unsigned) if you have to. This may reduce compiler error susceptability or the program using wrong values at the extreme values, such as assigning 128 to an 8-bit *unsigned* integer versus 128u.
 
+Finally, sometimes you will end up calling a returning function without using its value.
+Make sure to put a (void) infront of it. (MISRA standards)
+
 ```
 bool result = (bool) int_result;
 float calc = (float) (a_float / (float) an_int);
@@ -320,6 +332,7 @@ auto str = std::to_string(calc);
 uint8_t value_ui8 = (uint8_t) (value_ui32 & 0xFFu);
 #define DEF_SOMETHING (100u)
 unsigned int a = DEF_SOMETHING;
+(void)this_function_returns_an_int();
 ```
 ---
 ## **12. Defines with Values**
