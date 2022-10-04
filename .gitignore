@@ -1,3 +1,10 @@
+# Custom
+.idea
+cmake-build*
+.vscode
+90_BUILD/*
+!90_BUILD/.ignorethis
+
 # Prerequisites
 *.d
 
