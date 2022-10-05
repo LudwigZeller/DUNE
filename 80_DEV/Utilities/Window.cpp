@@ -4,7 +4,7 @@
 
 #include "Window.hpp"
 
-Window::Window(const char *title, bool fullscreen) {
+Window::Window(const char *title, bool fullscreen, const char *override) {
     /******************* Initialization ********************/
     assert_log(glfwInit(), "GLFW initialization failed");
     std::cout << "GLFW initialized!" << std::endl;
@@ -17,7 +17,7 @@ Window::Window(const char *title, bool fullscreen) {
     for (int i = 0; i < count; ++i) {
         std::cout << i << ": " << glfwGetMonitorName(monitors[i]) << std::endl;
 //        TODO:
-        if (strcmp(glfwGetMonitorName(monitors[i]), "HDMI-1") == 0)
+        if (strcmp(glfwGetMonitorName(monitors[i]), override != nullptr ? override : DEFAULT_DEVICE_NAME) == 0)
             beamer = monitors[i];
     }
     std::cout << "-----" << std::endl;

@@ -67,8 +67,20 @@
  * @param none
  * @returns Error Code
  */
-int main() try
+int main(int argc, char **argv) try
 {
+    //!!Parse arguments
+    char *device_name = nullptr;        //< Display device name
+
+    for(int i = 0; i < argc; ++i)
+    {
+        if((strlen(argv[i]) > 2) && (argv[i][0] == '-') && (argv[i][1] == 'm'))
+        {
+            device_name = argv[i] + 2;
+        }
+    }
+    
+
     //!! Check for connected hardware
     rs2::context ctx;
     auto device_list = ctx.query_devices();
@@ -81,18 +93,18 @@ int main() try
     std::cout << "Starting DepthWatch " << VERSION << std::endl;
 
     //! Window Creation is controlled by Window Util
-    Window window{"DepthWatch", FULLSCREEN};
+    Window window{"DepthWatch", FULLSCREEN, device_name};
 
     //!! Intel(R) RealsenseTM init
     rs2::pipeline pipe{};
     //  rs2::stream_profile stream_profile{};
-    //  rs2::config config{};
+    //rs2::config config{};
 
-    //!! ISSUE:
+    //!! REF:
     // https://community.intel.com/t5/Items-with-no-label/Problem-with-the-Realsense-SDK-2-0-and-OpenCV/m-p/605730
-    //  config.enable_stream(RS2_STREAM_DEPTH, 1280, 720, RS2_FORMAT_Z16, 30);
-    //  config.enable_stream(RS2_STREAM_COLOR, 1280, 720, RS2_FORMAT_BGR8, 30);
-    //  pipe.start(config);
+    //config.enable_stream(RS2_STREAM_DEPTH, 1280, 720, RS2_FORMAT_Z16, 30);
+    //config.enable_stream(RS2_STREAM_COLOR, 1280, 720, RS2_FORMAT_BGR8, 30);
+    //(void)pipe.start(config);
 
     //! Pipeline start with default configuration
     (void)pipe.start();
@@ -128,16 +140,18 @@ int main() try
         frames = pipe.wait_for_frames();
         frames = align_to.process(frames); //< High performance impact
 
-        auto depth_frame = frames.get_depth_frame();
-        auto depth = frames
-                .apply_filter(temporal)
+        auto depth_frame = frames.get_color_frame();
+        auto depth = frames;
+        //auto depth_frame = frames.get_depth_frame();
+        //auto depth = frames
+        //        .apply_filter(temporal)
         //      .apply_filter(filler)
-                .apply_filter(colorizer);
+        //        .apply_filter(colorizer);
 
         cv::Mat depth_matrix(
             cv::Size(depth_frame.get_width(), depth_frame.get_height()),
             CV_8UC3,
-            (void *) depth.get_data(),
+            (void *) depth_frame.get_data(),
             cv::Mat::AUTO_STEP
         );
 
