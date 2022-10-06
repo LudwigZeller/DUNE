@@ -56,7 +56,7 @@
 /*****           MISC               *****/
 #include <iostream>
 
-typedef uchar Pixel;
+typedef cv::Vec3b Pixel;
 /****************************************\
 |               MAIN FN                  |
 \****************************************/
@@ -146,9 +146,6 @@ int main(int argc, char **argv) try
     float resizey = abs(resizeheight - window.height()) / 2;
 
 
-    //******************* Viewport ********************
-    //set_viewport({.x = 0, .y = 0, .w = 100, .h = 100});
-
     //******************* Main loop ********************
     std::cout << "Starting main loop!" << std::endl;
     while (window) {
@@ -160,27 +157,50 @@ int main(int argc, char **argv) try
         auto color_frame = frames.get_color_frame();
         auto depth_frame = frames.get_depth_frame();
         auto depth = frames
-                .apply_filter(temporal)
+                .apply_filter(temporal);
         //      .apply_filter(filler)
-                .apply_filter(colorizer);
+        //        .apply_filter(colorizer);
 
-        cv::Mat depth_matrix(
+        cv::Mat raw_matrix(
             cv::Size(depth_frame.get_width(), depth_frame.get_height()),
-            CV_8UC3,
+            CV_16UC1,
             (void *) depth.get_data(),
             cv::Mat::AUTO_STEP
         );
 
-        cv::Mat color_matrix(
-            cv::Size(color_frame.get_width(), color_frame.get_height()),
-            CV_8UC3,
-            (void *) color_frame.get_data(),
-            cv::Mat::AUTO_STEP
+        cv::Mat depth_matrix(
+            cv::Size(depth_frame.get_width(), depth_frame.get_height()),
+            CV_8UC3
         );
 
         cv::Mat *dm = &depth_matrix;
 
-        depth_matrix.forEach<Pixel>([dm, color_matrix](Pixel &p, const int *pos)
+        depth_matrix.forEach<Pixel>([raw_matrix](Pixel &p, const int *pos){
+            const int x = pos[1];
+            const int y = pos[0];
+            const cv::float16_t &raw = raw_matrix.at<cv::float16_t>(y, x);
+            //cv::Vec3b &col_dat = dm->at<cv::Vec3b>(pos[0],pos[1]);
+            //const float dep = depth_frame.get_distance(pos[0], pos[1]);
+            //col_dat = (vec_v5-vec_ve*dep_dat);
+
+            p = {
+                (unsigned char)(3900000.0f*(1 - raw)),(unsigned char)(3900000.0f*(1 - raw)),
+                (unsigned char)(3900000.0f*(1 - raw))
+            };
+        });
+
+
+        /*cv::Mat color_matrix(
+            cv::Size(color_frame.get_width(), color_frame.get_height()),
+            CV_8UC3,
+            (void *) color_frame.get_data(),
+            cv::Mat::AUTO_STEP
+        );*/
+
+        /*cv::Mat *dm = &depth_matrix;
+        const cv::Vec3b v_inv{255,255,255};
+
+        depth_matrix.forEach<Pixel>([dm, color_matrix, v_inv](Pixel &p, const int *pos)
         {
             cv::Vec3b &depth = (*dm).at<cv::Vec3b>(pos[0],pos[1]);
             int mode = 
@@ -192,10 +212,10 @@ int main(int argc, char **argv) try
                     (depth[2] > 150) ? (1)
                     : (0)
                 ) : (0);
-            if(mode && (((pos[0] + pos[1]) % 16) > 7) || !mode && ((abs(pos[0] - pos[1]) % 16) > 7)) {
-                depth = color_matrix.at<cv::Vec3b>(pos[0],pos[1]);
+            if(mode && (((pos[0] + pos[1]) % 8) > 3) || !mode && ((abs(pos[0] - pos[1]) % 8) > 3)) {
+                depth = v_inv - depth; //color_matrix.at<cv::Vec3b>(pos[0],pos[1]);
             }
-        });
+        });*/
 
         //  for (auto &i: circles) {
         //      cv::Vec3i c = i;
@@ -211,12 +231,12 @@ int main(int argc, char **argv) try
         //  draw circles
 
         glViewport(resizex, resizey, resizewidth, resizeheight);
-        glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
         draw_frame(cv::Size((int) window.width(), (int) window.height()), depth_matrix);
 
         //!! Compiler-level configurable on-screen debug information
         #if DEBUG_ON_SCREEN
-        float dist = depth_frame.get_distance(depth_frame.get_width() / 2, depth_frame.get_height() / 2);
+        //float dist = depth_frame.get_distance(depth_frame.get_width() / 2, depth_frame.get_height() / 2);
+        int dist = raw_matrix.at<int>(depth_frame.get_height() / 2, depth_frame.get_width() / 2);
         str = "Distance: " + std::to_string(dist);
         draw_text_debug(10, 10, str.c_str());
         #endif

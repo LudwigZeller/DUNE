@@ -32,6 +32,14 @@ Window::Window(const char *title, bool fullscreen, const char *override) {
                                           glfwGetVideoMode(monitor)->height,
                                           title, fullscreen ? monitor : nullptr, nullptr);
 
+    if(beamer) {
+        int x,y;
+        int w,h;
+        glfwGetMonitorWorkarea(beamer, &x, &y, &w, &h);
+        glfwSetWindowPos(window, x, y);
+        glfwSetWindowSize(window, w, h);
+    }
+
     assert_log(window, "Window creation failed");
     std::cout << "Window creation succeeded!" << std::endl;
 
