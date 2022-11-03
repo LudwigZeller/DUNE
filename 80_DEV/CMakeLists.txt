@@ -11,7 +11,9 @@ set(PROJECT_FILES main.cpp
         Utilities/utils.cpp
         Utilities/Window.cpp
         Utilities/Texture.cpp
-        Filter/Filter.cpp)
+        Filter/Filter.cpp
+        manager/DControlManager.cpp
+        manager/DManager.cpp)
 ##################################################################
 
 set(OpenGL_GL_PREFERENCE LEGACY)
