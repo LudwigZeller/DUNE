@@ -22,11 +22,17 @@ public:
 
     explicit operator bool();
 
+    const bool initialized() const
+    {
+        return _initialized > 0;
+    }
+
 
 private:
     GLFWwindow *_window;
     int _width;
     int _height;
+    int _initialized = 0;
     inline static int _window_count = 0;
 };
 

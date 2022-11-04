@@ -52,6 +52,7 @@
 #include "Utilities/utils.hpp"
 #include "Utilities/Window.hpp"
 #include "Utilities/Texture.hpp"
+#include "manager/DControlManager.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -67,7 +68,22 @@
  * @param none
  * @returns Error Code
  */
-int main() try
+int main()
+{
+    while(!RTE::window.initialized());
+    DManager::DControlManager control;
+    control.launch();
+
+    if(RTE::window)
+    {
+        RTE::window.close();
+        while(RTE::window);
+    }
+
+    return RTE::exit_code_pipeline;
+}
+
+/*try
 {
     //!! Check for connected hardware
     rs2::context ctx;
@@ -81,7 +97,7 @@ int main() try
     std::cout << "Starting DepthWatch " << VERSION << std::endl;
 
     //! Window Creation is controlled by Window Util
-    Window window{"DepthWatch", FULLSCREEN};
+    //Window window{"DepthWatch", FULLSCREEN};
 
     //!! Intel(R) RealsenseTM init
     rs2::pipeline pipe{};
@@ -121,7 +137,7 @@ int main() try
     //Quadrangle bounds = check_bounds(frames.get_color_frame(), circles);
 
     //******************* Main loop ********************
-    std::cout << "Starting main loop!" << std::endl;
+    /*std::cout << "Starting main loop!" << std::endl;
     while (window) {
 
         //! Pipeline get frames and align depth image to color images
@@ -155,7 +171,7 @@ int main() try
         //  draw circles
 
 
-        draw_frame(cv::Size((int) window.width(), (int) window.height()), depth_matrix);
+        /*draw_frame(cv::Size((int) window.width(), (int) window.height()), depth_matrix);
 
         //!! Compiler-level configurable on-screen debug information
         #if DEBUG_ON_SCREEN
@@ -163,7 +179,7 @@ int main() try
         str = "Distance: " + std::to_string(dist);
         draw_text_debug(10, 10, str.c_str());
         #endif
-        while_timer();
+        while_timer();*/
 
         //!! ISSUE:
         // This takes roughly 5000ms every time cycle_counter reaches CALIBRATION_LOOP_THRESHOLD
@@ -174,16 +190,16 @@ int main() try
         //      cycle_counter = 0;
         //      bounds = check_bounds(frames.get_color_frame(), circles);
         //  }
-    }
+    //}
 
     //!! Clean up on window should close call
-    window.close();
-    while (window);
+    //window.close();
+    //while (window);
     //  window.~Window(); // Explicit Deconstructor call
     //  std::cout << "Review logs or close program by pressing Enter . . ." << std::endl;
     //  std << cin.get();
 
-    return 0;
+/*   return 0;
 }
 catch (const rs2::error &e)
 {
@@ -195,4 +211,4 @@ catch (const std::exception &e)
 {
     std::cerr << e.what() << std::endl;
     return EXIT_FAILURE;
-}
+}*/

@@ -37,7 +37,11 @@
 /*****************************************
 |               INCLUDES                 |
 *****************************************/
-#include "DNewManager.hpp"
+#include "DPipelineManager.hpp"
+#include "DrsGrabberManager.hpp"
+#include <iostream>
+#include <chrono>
+#include "../RTE.hpp"
 
 
 /*****************************************
@@ -66,7 +70,8 @@ class DControlManager
 private:
 
     //!! Managers are stored as members. Define and override their user functions via included .hpp
-    DNewManager dnm;
+    DPipelineManager pipelineMgr{};
+    DrsGrabberManager grabberMgr{};
 
 public:
 
@@ -74,21 +79,44 @@ public:
      * @fn DManager::DControlManager::~DControlManager()
      * @brief Destroy the DControlManager object
      */
-    ~DControlManager();
+    ~DControlManager()
+    {
+        call_termination();
+    }
 
     /**
      * @fn void DManager::DControlManager::call_termination()
      * @brief Invokes termination of all manager members
      * @deprecated Not required as managers are automatically terminated and their threads freed upon destruction.
      */
-    void call_termination();
+    void call_termination()
+    {
+        this->pipelineMgr.terminate();
+        this->grabberMgr.terminate();
+    }
 
     /**
-     * @fn int DManager::DControlManager::launch()
+     * @fn void DManager::DControlManager::launch()
      * @brief Loops and notifies managers according to their scedule, launch in Main thread!
-     * @return int exit code 
      */
-    int launch();
+    void launch()
+    {
+        using namespace std::chrono;
+
+        //!! Wait until all members finish initialization
+        while(!grabberMgr.can_run());
+        while(!pipelineMgr.can_run());
+    
+        //!! Main loop
+        while(!RTE::terminate_all)
+        {
+            if(grabberMgr)
+                grabberMgr.notify();
+            if(pipelineMgr)
+                pipelineMgr.notify();
+        }
+        this->call_termination();
+    }
 };
 
 };
