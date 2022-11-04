@@ -45,6 +45,6 @@
 #define CYCLE_COUNTER_AVERAGE           (10)            //< Number of ms/frame to be logged
 #define CALIBRATION_LOOP_THRESHOLD      (10)            //< Number of frames allowed to elapse until calibration cycle
 #define DEBUG_ON_SCREEN                 (true)          //< Do display debug information onscreen
-#define VERSION                         ("V1 R5")       //< Version string literal
+#define VERSION                         ("V1.1 R0")       //< Version string literal
 
 #endif //< __DEPTHCAMERA_CONSTANTS_HPP_
