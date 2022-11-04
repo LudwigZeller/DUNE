@@ -66,11 +66,6 @@ public:
                 device_list.front().get_info(RS2_CAMERA_INFO_NAME) <<
                 std::endl;
 
-            if(pipe.get_active_profile())
-            {
-                pipe.stop();
-            }
-
             config.enable_device(device_list.front().get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
             config.enable_stream(RS2_STREAM_DEPTH, 480, 270, RS2_FORMAT_Z16, 15);
             config.enable_stream(RS2_STREAM_COLOR, 1280, 720, RS2_FORMAT_BGR8, 15);
@@ -105,7 +100,7 @@ public:
               << e.what() << std::endl;
         if(count_errors++ > 9)
         {
-            terminate();
+            std::cerr << "Forced termination after 10 rs2::error's" << std::endl;
             RTE::terminate_all = true;
             RTE::exit_code_pipeline = 1;
         }
@@ -115,7 +110,7 @@ public:
         std::cerr << "Standard error " << e.what() << std::endl;
         if(count_errors++ > 9)
         {
-            terminate();
+            std::cerr << "Forced termination after 10 std::exception's" << std::endl;
             RTE::terminate_all = true;
             RTE::exit_code_pipeline = 1;
         }

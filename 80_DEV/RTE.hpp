@@ -14,5 +14,6 @@ namespace RTE
     static bool window_open = false;
     static bool terminate_all = false;
     static int exit_code_pipeline = 0;
+    static int draw = 0;
     static Window window{"DUNE", FULLSCREEN};
 }

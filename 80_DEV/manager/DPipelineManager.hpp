@@ -22,6 +22,7 @@ public:
     {
     }
 
+    cv::Mat logo;
     #if DEBUG_ON_SCREEN
     std::string debug_str;
     #endif
@@ -29,6 +30,7 @@ public:
     virtual void init_user()
     {
         std::cout << "Starting Pipeline manager" << std::endl;
+        logo = cv::imread("DuneLogo.png");
         debug_str = "";
         while(!RTE::window.initialized());
 
@@ -48,11 +50,13 @@ public:
 
         if(RTE::camera_connected)
         {
-            auto matrix = RTE::window_out_matrix;
-            draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), matrix);
+            RTE::draw = 1;
+            //draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), RTE::window_out_matrix);
         }
         else
         {
+            RTE::draw = 2;
+            //draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), logo);
             //TODO: Draw Dune logo Ludwig
         }
 
