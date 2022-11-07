@@ -1,4 +1,4 @@
-/****************************************\
+/*****************************************
 |      ____    _  _   _   _   ____       |
 |     |  _ \  | || | | \ | | |  __|      |
 |     | | \ \ | || | |  \| | | |_        |
@@ -29,22 +29,20 @@
 | DIRECTORY, AS WELL AS                  |
 | INDIVIDUAL LICENSES AND TOS.           |
 |                                        |
-\****************************************/
+*****************************************/
 
-#ifndef __DEPTHCAMERA_CONSTANTS_HPP_
-#define __DEPTHCAMERA_CONSTANTS_HPP_
+#pragma once
 
 
 /****************************************\
 |              DEFINITIONS               |
 \****************************************/
 
-#define FPS                             (16.0f)         //< Frames per second constant, used to evaluate delta time
-#define FULLSCREEN                      (false)         //< Fullscreen constant for window initialized in main 
+#define FPS                             (30.0f)         //< Frames per second constant, used by pipeline
+#define CPS                             (15u)           //< Captures per second constant, used by rs Grabber
+#define FULLSCREEN                      (false)         //< Fullscreen constant for window
 #define CYCLE_COUNTER_AVERAGE           (10)            //< Number of ms/frame to be logged
 #define CALIBRATION_LOOP_THRESHOLD      (10)            //< Number of frames allowed to elapse until calibration cycle
-#define DEBUG_ON_SCREEN                 (true)         //< Do display debug information onscreen
-#define VERSION                         ("V1 R5")       //< Version string literal
+#define DEBUG_ON_SCREEN                 (true)          //< Do display debug information onscreen
+#define VERSION                         ("V1.1 R4")     //< Version string literal
 #define DEFAULT_DEVICE_NAME             ("DVI-0")      //< Preferred displaying device
-
-#endif //< __DEPTHCAMERA_CONSTANTS_HPP_

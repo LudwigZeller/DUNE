@@ -52,6 +52,7 @@
 #include "Utilities/utils.hpp"
 #include "Utilities/Window.hpp"
 #include "Utilities/Texture.hpp"
+#include "manager/DControlManager.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -67,9 +68,10 @@ typedef cv::Vec3b Pixel;
  * @param none
  * @returns Error Code
  */
-int main(int argc, char **argv) try
+
+int main(int argc, char **argv)
 {
-    //!!Parse arguments
+    //!! Parse arguments
     char *device_name = nullptr;        //< Display device name
 
     for(int i = 0; i < argc; ++i)
@@ -80,102 +82,23 @@ int main(int argc, char **argv) try
         }
     }
     
+    //!! Wait for init and run controller
+    while(!RTE::window.initialized());
+    DManager::DControlManager control;
+    control.launch();
 
-    //!! Check for connected hardware
-    rs2::context ctx;
-    auto device_list = ctx.query_devices();
-    if(device_list.size() < 1ULL)
+    if(RTE::window)
     {
-        std::cerr << "No devices connected!\nMake sure to plug in the Camera!" << std::endl;
-        return -1;
+        RTE::window.close();
+        while(RTE::window);
     }
 
-    std::cout << "Starting DepthWatch " << VERSION << std::endl;
+    clog(info) << "Program exited normaly" << std::endl;
+    return RTE::exit_code_pipeline;
+}
 
-    //!! Intel(R) RealsenseTM init
-    rs2::pipeline pipe{};
-    rs2::stream_profile stream_profile{};
-    rs2::config config{};
-
-    //!! REF:
-    // https://community.intel.com/t5/Items-with-no-label/Problem-with-the-Realsense-SDK-2-0-and-OpenCV/m-p/605730
-    config.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
-    config.enable_stream(RS2_STREAM_COLOR, 1280, 720, RS2_FORMAT_BGR8, 10);
-    if(!config.can_resolve(pipe))
-    {
-        std::cerr << "Fatal error! Config cannot be resolved!" << std::endl;
-        return -1;
-    }
-     
-    (void)pipe.start(config);
-
-    //! Pipeline start with default configuration
-    //(void)pipe.start();
-    std::cout << "reached here" << std::endl;
-
-    //!! Integrated filters init
-    rs2::colorizer colorizer{9};
-    rs2::temporal_filter temporal{};
-    //  rs2::rates_printer printer{};
-    //  rs2::hole_filling_filter filler{0};
-    //  rs2::spatial_filter spatial{0.5, 20, 2, 2};
-
-    //! Depth to Color alignment
-    rs2::align align_to(RS2_STREAM_COLOR);
-    std::cout << "and here" << std::endl;
-
-    //! Window Creation is controlled by Window Util
-    std::cout << "Launch window." << std::endl;
-    Window window{"DepthWatch", FULLSCREEN, device_name};
-
-    //!! Utils
-    std::string str{};
-    unsigned int cycle_counter = 0;
-
-    //std::vector<cv::Vec3f> circles;
-
-
-    //******************* Init ********************
-    rs2::frameset frames = pipe.wait_for_frames();
-    frames = align_to.process(frames);
-    //Quadrangle bounds = check_bounds(frames.get_color_frame(), circles);
-
-    float resizewidth = window.width();
-    float resizeheight = window.width() * (float) frames.get_depth_frame().get_height() / (float) frames.get_depth_frame().get_width();
-    float resizex = 0.0f;
-    float resizey = abs(resizeheight - window.height()) / 2;
-
-
-    //******************* Main loop ********************
-    std::cout << "Starting main loop!" << std::endl;
-    while (window) {
-
-        //! Pipeline get frames and align depth image to color images
-        frames = pipe.wait_for_frames();
-        frames = align_to.process(frames); //< High performance impact
-
-        auto color_frame = frames.get_color_frame();
-        auto depth_frame = frames.get_depth_frame();
-        auto depth = frames
-                .apply_filter(temporal);
-        //      .apply_filter(filler)
-        //        .apply_filter(colorizer);
-
-        cv::Mat raw_matrix(
-            cv::Size(depth_frame.get_width(), depth_frame.get_height()),
-            CV_16UC1,
-            (void *) depth.get_data(),
-            cv::Mat::AUTO_STEP
-        );
-
-        cv::Mat depth_matrix(
-            cv::Size(depth_frame.get_width(), depth_frame.get_height()),
-            CV_8UC3
-        );
-
-        cv::Mat *dm = &depth_matrix;
-
-        depth_matrix.forEach<Pixel>([raw_matrix](Pixel &p, const int *pos){
+/*
+depth_matrix.forEach<Pixel>([raw_matrix](Pixel &p, const int *pos){
             const int x = pos[1];
             const int y = pos[0];
             const cv::float16_t &raw = raw_matrix.at<cv::float16_t>(y, x);
@@ -188,88 +111,4 @@ int main(int argc, char **argv) try
                 (unsigned char)(3900000.0f*(1 - raw))
             };
         });
-
-
-        /*cv::Mat color_matrix(
-            cv::Size(color_frame.get_width(), color_frame.get_height()),
-            CV_8UC3,
-            (void *) color_frame.get_data(),
-            cv::Mat::AUTO_STEP
-        );*/
-
-        /*cv::Mat *dm = &depth_matrix;
-        const cv::Vec3b v_inv{255,255,255};
-
-        depth_matrix.forEach<Pixel>([dm, color_matrix, v_inv](Pixel &p, const int *pos)
-        {
-            cv::Vec3b &depth = (*dm).at<cv::Vec3b>(pos[0],pos[1]);
-            int mode = 
-                (depth[0] > 150) ? (
-                    (depth[1] > 150) ? (1)
-                    :(depth[2] > 150) ? (1)
-                    : (0)
-                ) : (depth[1] > 150) ? (
-                    (depth[2] > 150) ? (1)
-                    : (0)
-                ) : (0);
-            if(mode && (((pos[0] + pos[1]) % 8) > 3) || !mode && ((abs(pos[0] - pos[1]) % 8) > 3)) {
-                depth = v_inv - depth; //color_matrix.at<cv::Vec3b>(pos[0],pos[1]);
-            }
-        });*/
-
-        //  for (auto &i: circles) {
-        //      cv::Vec3i c = i;
-        //      cv::Point center = cv::Point(c[0], c[1]);
-        //      // circle center
-        //      circle(depth_matrix, center, 1, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
-        //      // circle outline
-        //      int radius = c[2];
-        //      circle(depth_matrix, center, radius, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
-        //  }
-
-        //  draw_quadrangle(depth_matrix, bounds);
-        //  draw circles
-
-        glViewport(resizex, resizey, resizewidth, resizeheight);
-        draw_frame(cv::Size((int) window.width(), (int) window.height()), depth_matrix);
-
-        //!! Compiler-level configurable on-screen debug information
-        #if DEBUG_ON_SCREEN
-        //float dist = depth_frame.get_distance(depth_frame.get_width() / 2, depth_frame.get_height() / 2);
-        int dist = raw_matrix.at<int>(depth_frame.get_height() / 2, depth_frame.get_width() / 2);
-        str = "Distance: " + std::to_string(dist);
-        draw_text_debug(10, 10, str.c_str());
-        #endif
-        while_timer();
-
-        //!! ISSUE:
-        // This takes roughly 5000ms every time cycle_counter reaches CALIBRATION_LOOP_THRESHOLD
-        // check_bounds seems to contain heavy-load processes and should be changed entirely or be run
-        // on a seperate, monitored thread.
-        //  cycle_counter++;
-        //  if (cycle_counter >= CALIBRATION_LOOP_THRESHOLD) {;            // Find the color data
-        //      cycle_counter = 0;
-        //      bounds = check_bounds(frames.get_color_frame(), circles);
-        //  }
-    }
-
-    //!! Clean up on window should close call
-    window.close();
-    while (window);
-    //  window.~Window(); // Explicit Deconstructor call
-    //  std::cout << "Review logs or close program by pressing Enter . . ." << std::endl;
-    //  std << cin.get();
-
-    return 0;
-}
-catch (const rs2::error &e)
-{
-    std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    "
-              << e.what() << std::endl;
-    return EXIT_FAILURE;
-}
-catch (const std::exception &e)
-{
-    std::cerr << e.what() << std::endl;
-    return EXIT_FAILURE;
-}
+*/

@@ -6,26 +6,26 @@
 
 Window::Window(const char *title, bool fullscreen, const char *override) {
     /******************* Initialization ********************/
+    this->_initialized = 0;
     assert_log(glfwInit(), "GLFW initialization failed");
-    std::cout << "GLFW initialized!" << std::endl;
+    clog(info) << "GLFW initialized!\n" << std::endl;
 
     /******************* Window ********************/
     int count;
     GLFWmonitor **monitors = glfwGetMonitors(&count);
-    std::cout << "-----\nConnected monitors are: " << std::endl;
+    clog(info) << "Connected monitors are: " << std::endl;
     GLFWmonitor *beamer = nullptr;
     for (int i = 0; i < count; ++i) {
-        std::cout << i << ": " << glfwGetMonitorName(monitors[i]) << std::endl;
-//        TODO:
+        clog(info) << i << ": " << glfwGetMonitorName(monitors[i]) << std::endl;
         if (strcmp(glfwGetMonitorName(monitors[i]), override != nullptr ? override : DEFAULT_DEVICE_NAME) == 0)
             beamer = monitors[i];
     }
-    std::cout << "-----" << std::endl;
+    clog(info) << "----------\n" << std::endl;
     GLFWmonitor *monitor;
     if (beamer) {
         monitor = beamer;
     } else {
-        std::cerr << "Didn't find Beamer, using primary monitor instead" << std::endl;
+        clog(warn) << "Didn't find Beamer, using primary monitor instead" << std::endl;
         monitor = glfwGetPrimaryMonitor();
     }
     GLFWwindow *window = glfwCreateWindow(glfwGetVideoMode(monitor)->width,
@@ -41,7 +41,8 @@ Window::Window(const char *title, bool fullscreen, const char *override) {
     }
 
     assert_log(window, "Window creation failed");
-    std::cout << "Window creation succeeded!" << std::endl;
+    clog(info) << "Window creation succeeded!" << std::endl;
+    glfwSetWindowUserPointer(window, this);
 
     glfwMakeContextCurrent(window);
     _window = window;
@@ -52,22 +53,16 @@ Window::Window(const char *title, bool fullscreen, const char *override) {
     /******************* OpenGL Bindings ********************/
     // Need to be loaded after Context
     assert_log(gladLoadGL(), "OpenGL binding failed");
-    std::cout << "OpenGL bindings created!" << std::endl;
-    std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+    clog(info) << "OpenGL bindings created!" << std::endl;
+    clog(info) << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
     /******************* Configuration ********************/
     glfwSwapInterval(1);
 
-    glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode, int action, int mods) {
-        if (key == GLFW_KEY_ESCAPE) {
-            if (!glfwWindowShouldClose(window))
-                std::cout << "Closed by Escape" << std::endl;
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-        }
-    });
+    glfwSetKeyCallback(window, Window::onKey);
 
     glfwSetErrorCallback([](int error, const char *description) {
-        std::cerr << "Error " << error << ": " << description << std::endl;
+        clog(err) << "GLFW Error callback: " << error << ": " << description << std::endl;
     });
 
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int width, int height) {
@@ -76,17 +71,18 @@ Window::Window(const char *title, bool fullscreen, const char *override) {
 
     glfwSetMonitorCallback([](GLFWmonitor *monitor, int event) {
         if (event == GLFW_DISCONNECTED) {
-            std::cerr << "Monitor Disconnected" << std::endl;
+            clog(err) << "Monitor Disconnected" << std::endl;
             //TODO: Handle error instead of running away (Minimize window on primary, tell user etc...)
             glfwTerminate();
             exit(-1);
         }
         if (event == GLFW_CONNECTED) {
-            std::cout << "Monitor Connected" << std::endl;
+            clog(warn) << "Monitor Connected" << std::endl;
             // TODO: Check if connected monitor is beamer and switch to it
         }
     });
 
+    this->_initialized = 1;
 }
 
 Window::~Window() {
@@ -113,4 +109,17 @@ Window::operator bool() {
     glOrtho(0, _width, _height, 0, -1, +1);
 
     return res;
+}
+
+void Window::onKeyCustom(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE) {
+        if (!glfwWindowShouldClose(window))
+            clog(info) << "Closed by Escape" << std::endl;
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+    else if(key == GLFW_KEY_C && action == GLFW_RELEASE) {
+        clog(warn) << "Switching stream.." << std::endl;
+        _should_sw = true;
+    }
 }

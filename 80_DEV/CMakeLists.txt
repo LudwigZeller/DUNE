@@ -10,8 +10,7 @@ include(cmake/utils.cmake)
 set(PROJECT_FILES main.cpp
         Utilities/utils.cpp
         Utilities/Window.cpp
-        Utilities/Texture.cpp
-        Filter/Filter.cpp)
+        Utilities/Texture.cpp)
 ##################################################################
 
 set(OpenGL_GL_PREFERENCE LEGACY)

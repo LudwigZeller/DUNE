@@ -7,7 +7,7 @@
 void Texture::render(const rs2::frame &frame, const rect &rect, float alpha) {
     auto vf = frame.as<rs2::video_frame>();
     if (!vf) {
-        std::cerr << "Missing video frame!" << std::endl;
+        clog(err) << "Missing video frame!" << std::endl;
         return;
     }
     upload(vf);

@@ -39,7 +39,7 @@ The head of a file is placed in the first lines of the file. Its purpose is to c
 
 Think of it as a *rough description for humans*:
 ```
-/****************************************\
+/*****************************************
 |      ____    _  _   _   _   ____       |
 |     |  _ \  | || | | \ | | |  __|      |
 |     | | \ \ | || | |  \| | | |_        |
@@ -74,13 +74,13 @@ Think of it as a *rough description for humans*:
 | DIRECTORY, AS WELL AS                  |
 | INDIVIDUAL LICENSES AND TOS.           |
 |                                        |
-\****************************************/
+*****************************************/
 
 #ifndef __MAIN_HPP_
 #define __MAIN_HPP_
 
 
-/****************************************\
+/*****************************************
 | ......
 ```
 ---
@@ -90,42 +90,42 @@ It is good practice to visually subdivide these into "sections".
 
 This can be good for readability for humans.
 ```
-/****************************************\
+/*****************************************
 |               INCLUDES                 |
-\****************************************/
+*****************************************/
 #include <iostream>
 #include "utils/utils.hpp"
 
 
-/****************************************\
+/*****************************************
 |              DEFINITIONS               |
-\****************************************/
+*****************************************/
 #define UINT_MISCELANEOUS_CONSTANT (10u)
 
 
-/****************************************\
+/*****************************************
 |          LOCAL DECLARATIONS            |
-\****************************************/
+*****************************************/
 volatile uint32_t random_integer;
 
 
-/****************************************\
+/*****************************************
 |          GLOBAL DECLARATIONS           |
-\****************************************/
+*****************************************/
 typedef struct Global_Struct_s {
     ...
 } Global_Struct_t;
 
 
-/****************************************\
+/*****************************************
 |           LOCAL DEFINITIONS            |
-\****************************************/
+*****************************************/
 random_integer = INT_MISCELANEOUS_CONSTANT;
 
 
-/****************************************\
+/*****************************************
 |          GLOBAL DEFINITIONS            |
-\****************************************/
+*****************************************/
 ...
 ```
 
@@ -137,9 +137,9 @@ Of course extra sections such as "FUNCTIONS" or "CLASS XYZ" may be added.
 This step is not too important but may also boost the readability of your document. The idea is to divide your sections for another layer, or even more layers.
 
 ```
-/****************************************\
+/*****************************************
 |               INCLUDES                 |
-\****************************************/
+*****************************************/
 
 /*****       LIBRARY INCLUDES       *****/
 #include <glfw/glfw3.h>
@@ -206,9 +206,9 @@ Keep your spacing and tabs at an equal distance for all applicable lines in a ro
 #define UINT_CFG_WHATEVER       (UINT_CFG_FOR_ELSE + 1)         //< JKL
 
 
-/****************************************\
+/*****************************************
 |          GLOBAL DEFINITIONS            |
-\****************************************/
+*****************************************/
 //! Global Runtime Environment; holds global data statically
 extern static RTE_t RTE =
 {
@@ -265,12 +265,12 @@ Like in [Function Headings](#7-function-headings), doxygen-markdown is supported
 
 Keep in mind that your IDE probably will not show the first three lines.
 ```
-/**********************\
+/***********************
  *   CLASS Test_c     *
  **********************
  * @class Test_c : This
  * @brief Test Test_c is a class for XYZ.
-\**********************/
+***********************/
 static class Test_c
 {
     ...
