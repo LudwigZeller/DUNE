@@ -62,7 +62,7 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 ###################### Build, Link and Copy ######################
 add_executable(${PROJECT_NAME} ${PROJECT_FILES} ${GLAD_SRC_DIR}/glad.c)
-target_link_libraries(${PROJECT_NAME} ${realsense2_LIBRARY} ${OPENGL_LIBRARIES} glfw ${OpenCV_LIBS}) #opencv_world460.lib
+target_link_libraries(${PROJECT_NAME} ${realsense2_LIBRARY} ${OPENGL_LIBRARIES} glfw dl ${OpenCV_LIBS}) #opencv_world460.lib
 #copy_files(${REALSENSE_DLL_FILE})
 #copy_directory(/shader)
 #copy_directory_dll(${OpenCV_DLL_DIR})

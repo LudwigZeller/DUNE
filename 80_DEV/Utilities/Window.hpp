@@ -12,7 +12,7 @@
 
 class Window {
 public:
-    explicit Window(const char *title, bool fullscreen = false);
+    explicit Window(const char *title, bool fullscreen = false, const char *override = nullptr);
 
     ~Window();
 

@@ -4,9 +4,7 @@
 
 #include "Window.hpp"
 
-
-Window::Window(const char *title, bool fullscreen) {
-    clog(info) << "LAUNCHING DUNE" << std::endl;
+Window::Window(const char *title, bool fullscreen, const char *override) {
     /******************* Initialization ********************/
     this->_initialized = 0;
     assert_log(glfwInit(), "GLFW initialization failed");
@@ -19,7 +17,7 @@ Window::Window(const char *title, bool fullscreen) {
     GLFWmonitor *beamer = nullptr;
     for (int i = 0; i < count; ++i) {
         clog(info) << i << ": " << glfwGetMonitorName(monitors[i]) << std::endl;
-        if (strcmp(glfwGetMonitorName(monitors[i]), "HDMI-1") == 0)
+        if (strcmp(glfwGetMonitorName(monitors[i]), override != nullptr ? override : DEFAULT_DEVICE_NAME) == 0)
             beamer = monitors[i];
     }
     clog(info) << "----------\n" << std::endl;
@@ -33,6 +31,14 @@ Window::Window(const char *title, bool fullscreen) {
     GLFWwindow *window = glfwCreateWindow(glfwGetVideoMode(monitor)->width,
                                           glfwGetVideoMode(monitor)->height,
                                           title, fullscreen ? monitor : nullptr, nullptr);
+
+    if(beamer) {
+        int x,y;
+        int w,h;
+        glfwGetMonitorWorkarea(beamer, &x, &y, &w, &h);
+        glfwSetWindowPos(window, x, y);
+        glfwSetWindowSize(window, w, h);
+    }
 
     assert_log(window, "Window creation failed");
     clog(info) << "Window creation succeeded!" << std::endl;
