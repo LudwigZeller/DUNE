@@ -80,7 +80,7 @@ int main()
         while(RTE::window);
     }
 
-    std::cout << "Program exited normaly" << std::endl;
+    clog(info) << "Program exited normaly" << std::endl;
     return RTE::exit_code_pipeline;
 }
 

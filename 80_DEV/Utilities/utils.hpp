@@ -20,6 +20,31 @@
 #include "../dependencies/stb_easy_font.h"
 #include "Window.hpp"
 #include "librealsense2/hpp/rs_frame.hpp"
+#include <time.h>
+
+enum log_type { info, warn, err };
+inline std::ostream &clog(log_type &&lt)
+{
+    time_t sys_time;
+    struct tm *local_time;
+    time( &sys_time );
+    local_time = localtime(&sys_time);
+
+    int sys_hour = local_time->tm_hour;
+    int sys_minu = local_time->tm_min;
+    int sys_seco = local_time->tm_sec;
+
+    switch(lt)
+    {
+    case info:
+        return std::cout << "\033[37m[INFO @ " << sys_hour << 'h' << sys_minu << 'm' << sys_seco << "s] ";
+    case warn:
+        return std::cout << "\033[33m[WARNING @ " << sys_hour << 'h' << sys_minu << 'm' << sys_seco << "s] ";
+    case err:
+        return std::cerr << "\033[31m[ERROR @ " << sys_hour << 'h' << sys_minu << 'm' << sys_seco << "s] ";
+    }
+    return std::cout;
+} 
 
 /**
  * Macro asserts the condition
@@ -33,7 +58,7 @@
  */
 #define assert_log(assertion, message) \
     if(!(assertion)) \
-        std::cerr << "Error: " << message << "\n" << std::endl; \
+        clog(err) << message << "\n" << std::endl; \
     assert(assertion)
 
 void while_timer();
@@ -63,7 +88,7 @@ inline GLuint matToTexture(const cv::Mat &mat, GLenum minFilter, GLenum magFilte
         magFilter == GL_LINEAR_MIPMAP_NEAREST ||
         magFilter == GL_NEAREST_MIPMAP_LINEAR ||
         magFilter == GL_NEAREST_MIPMAP_NEAREST) {
-        std::cerr << "You can't use MIPMAPs for magnification - setting filter to GL_LINEAR" << std::endl;
+        clog(err) << "You can't use MIPMAPs for magnification - setting filter to GL_LINEAR" << std::endl;
         magFilter = GL_LINEAR;
     }
 
@@ -108,7 +133,7 @@ inline GLuint matToTexture(const cv::Mat &mat, GLenum minFilter, GLenum magFilte
 
 
 // https://gist.github.com/insaneyilin/038a022f2ece61c923315306ddcea081
-inline void draw_frame(const cv::Size &size, const cv::Mat &frame) {
+inline void draw_frame(const cv::Size &size, const cv::Mat &frame, const cv::Size &xy = {0,0}) {
     // Clear color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);     // Operate on model-view matrix
@@ -119,14 +144,10 @@ inline void draw_frame(const cv::Size &size, const cv::Mat &frame) {
 
     /* Draw a quad */
     glBegin(GL_QUADS);
-    glTexCoord2i(0, 0);
-    glVertex2i(0, 0);
-    glTexCoord2i(0, 1);
-    glVertex2i(0, (int) size.height);
-    glTexCoord2i(1, 1);
-    glVertex2i((int) size.width, (int) size.height);
-    glTexCoord2i(1, 0);
-    glVertex2i((int) size.width, 0);
+    glTexCoord2i(0, 0);     glVertex2i((int) xy.width,                      (int) xy.height);
+    glTexCoord2i(0, 1);     glVertex2i((int) xy.width,                      (int) size.height + (int) xy.height);
+    glTexCoord2i(1, 1);     glVertex2i((int) size.width + (int) xy.width,   (int) size.height + (int) xy.height);
+    glTexCoord2i(1, 0);     glVertex2i((int) size.width + (int) xy.width,   (int) xy.height);
     glEnd();
 
     glDeleteTextures(1, &image_tex);

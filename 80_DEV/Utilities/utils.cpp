@@ -28,7 +28,7 @@ void while_timer() {
                        (elapsed - milliseconds((int) (1000.0f / FPS))).count())) +
                "ms behind";
 
-        std::cerr << "The thread is running " << (elapsed - milliseconds((int) (1000.0f / FPS))).count() << "ms behind"
+        clog(err) << "The thread is running " << (elapsed - milliseconds((int) (1000.0f / FPS))).count() << "ms behind"
                   << std::endl;
         draw_text_debug(200, 20, str.c_str());
     }
@@ -132,7 +132,7 @@ ShaderProgramSource parseShader(const std::string &path) {
         }
     }
 
-    std::cout << "Successfully loaded Shaders from: " << path.c_str() << std::endl;
+    clog(info) << "Successfully loaded Shaders from: " << path.c_str() << std::endl;
 
     return {stringstream[(int) ShaderType::VERTEX].str(),
             stringstream[(int) ShaderType::FRAGMENT].str()};
@@ -167,14 +167,14 @@ static unsigned int compileShader(unsigned int type, const std::string &source) 
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
         char *message = (char *) alloca(length * sizeof(char));
         glGetShaderInfoLog(id, length, &length, message);
-        std::cerr << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!"
+        clog(err) << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!"
                   << std::endl;
-        std::cerr << message << std::endl;
+        clog(err) << message << std::endl;
         glDeleteShader(id);
         return 0;
     }
 
-    std::cout << "Successfully compiled shader of type: " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment")
+    clog(info) << "Successfully compiled shader of type: " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment")
               << std::endl;
 
     return id;
