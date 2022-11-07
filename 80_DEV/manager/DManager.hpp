@@ -86,6 +86,7 @@ public:
         const std::chrono::milliseconds delay_target_period;            //< 4: Target delay; it acts as an offset
         const bool log_ela;                                             //< 5: Call std::cout for every elapsed time per tick
         const std::string name;                                         //< 6: Name used in log calls.
+        const int *adress_millis;                                       //< 7: Address to store millis elapse into.
     };
 
 private:
@@ -162,7 +163,7 @@ public:
             this->terminated = 1;
             this->cv.notify_one();
             this->thread.join();
-            std::cout << "Automatic termination of " << this->flags.name << " " << std::endl;
+            clog(info) << "Automatic termination of " << this->flags.name << " " << std::endl;
         }
     }
 
@@ -174,6 +175,7 @@ public:
     {
         //! Timing init
         auto start = std::chrono::steady_clock::now();
+        auto now = start;
         auto ela = start-start;
 
         //! User defined init (in scope)
@@ -193,15 +195,25 @@ public:
             this->run_user();
 
             //! Elaborate time
+            now = std::chrono::steady_clock::now();
             this->milli_last_ela = 
-                std::chrono::duration_cast<std::chrono::milliseconds>
-                (std::chrono::steady_clock::now() - start)
+                std::chrono::duration_cast
+                <std::chrono::milliseconds>
+                (now - start)
                 .count();
+            if(this->flags.adress_millis != NULL)
+            {
+                *((int*)(this->flags.adress_millis)) = this->milli_last_ela;
+            }
 
             //! Print ela
             if(this->flags.log_ela)
             {
-                std::cout << "Thread " << std::this_thread::get_id() << ", \"" << this->flags.name << "\" took " << this->milli_last_ela << "ms." << std::endl;
+                clog(info) << "Thread " << std::this_thread::get_id() << ", \"" << this->flags.name << "\" took " << this->milli_last_ela << "ms." << std::endl;
+            }
+            else if(this->flags.log_lag && this->milli_last_ela > this->flags.target_period.count())
+            {
+                clog(warn) << "Thread " << std::this_thread::get_id() << ", \"" << this->flags.name << "\" is lagging behind! Took " << this->milli_last_ela << "ms." << std::endl;
             }
 
             //! Wait until next notify
@@ -251,7 +263,7 @@ public:
             this->terminated = 1;
             this->cv.notify_one();
             this->thread.join();
-            std::cout << "Manual termination of " << this->flags.name << " " << std::endl;
+            clog(info) << "Manual termination of " << this->flags.name << " " << std::endl;
         }
     }
 

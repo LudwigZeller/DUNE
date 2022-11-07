@@ -106,6 +106,8 @@ public:
         //!! Wait until all members finish initialization
         while(!grabberMgr.can_run());
         while(!pipelineMgr.can_run());
+
+        clog(info) << "DONE! Loop starting!" << std::endl;
     
         //!! Main loop
         while(!RTE::terminate_all)
@@ -115,6 +117,7 @@ public:
             if(pipelineMgr)
                 pipelineMgr.notify();
         }
+        this->grabberMgr.end_stream();
         this->call_termination();
     }
 };
