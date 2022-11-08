@@ -48,3 +48,11 @@ function(copy_directory_dll DIR)
             "${DIR}"
             "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 endfunction()
+
+# MakeDLogo script
+function(makedlogo)
+    message(STATUS "${PROJECT_SOURCE_DIR}/assets/MakeDLogo.bash run")
+    add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
+        COMMAND bash ${PROJECT_SOURCE_DIR}/assets/MakeDLogo.bash ${PROJECT_SOURCE_DIR}/assets
+    )
+endfunction()

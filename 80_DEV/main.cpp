@@ -48,11 +48,11 @@
 #include <opencv2/objdetect.hpp>
 
 /*****        LOCAL INCLUDE         *****/
-#include "config.hpp"
-#include "Utilities/utils.hpp"
-#include "Utilities/Window.hpp"
-#include "Utilities/Texture.hpp"
-#include "manager/DControlManager.hpp"
+//#include "config.hpp"
+//#include "Utilities/utils.hpp"
+//#include "Utilities/Window.hpp"
+//#include "Utilities/Texture.hpp"
+//#include "manager/DControlManager.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -71,7 +71,32 @@ typedef cv::Vec3b Pixel;
 
 int main(int argc, char **argv)
 {
-    //!! Parse arguments
+    cv::Mat mat = cv::imread("DuneLogo.png");
+    uchar *dat = (uchar*)mat.ptr<uchar[3]>();
+    cv::Size s = mat.size();
+    int out = 0;
+
+    if(!mat.isContinuous())
+    {
+        std::cout << "ERR NOT CONT" << std::endl;
+        exit(-1);
+    }
+
+    for(int i = 0; i < s.height; i++)
+    {
+        for(int j = 0; j < s.width; j++)
+        {
+            out = 0;
+            for(int k = 0; k < 3; k++)
+            {
+                out += dat[3*(j + i * s.width) + k];
+            }
+            printf("%3i ", out/3);
+        }
+        std::cout << std::endl;
+    }
+
+ /*   //!! Parse arguments
     char *device_name = nullptr;        //< Display device name
 
     for(int i = 0; i < argc; ++i)
@@ -94,7 +119,7 @@ int main(int argc, char **argv)
     }
 
     clog(info) << "Program exited normaly" << std::endl;
-    return RTE::exit_code_pipeline;
+    return RTE::exit_code_pipeline;*/
 }
 
 /*

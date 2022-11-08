@@ -40,7 +40,7 @@
 *****************************************/
 #include "DManager.hpp"
 #include "../config.hpp"
-#include "../Utilities/utils.hpp"
+#include "../utils.hpp"
 #include "../RTE.hpp"
 
 using namespace std::chrono;

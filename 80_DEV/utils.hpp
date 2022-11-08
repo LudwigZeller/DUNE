@@ -5,7 +5,7 @@
 #ifndef DEPTHCAMERA_UTILS_HPP
 #define DEPTHCAMERA_UTILS_HPP
 
-#include "../config.hpp"
+#include "config.hpp"
 
 #include <cassert>
 #include <fstream>
@@ -17,7 +17,7 @@
 #include <thread>
 #include <vector>
 #include <opencv2/opencv.hpp>
-#include "../dependencies/stb_easy_font.h"
+#include "dependencies/stb_easy_font.h"
 #include "Window.hpp"
 #include "librealsense2/hpp/rs_frame.hpp"
 #include <time.h>

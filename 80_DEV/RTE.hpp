@@ -4,10 +4,8 @@
 
 #include <opencv2/opencv.hpp>
 #include <librealsense2/rs.hpp>
-#include "Utilities/Window.hpp"
+#include "Window.hpp"
 #include "config.hpp"
-
-using namespace DManager;
 
 namespace RTE
 {

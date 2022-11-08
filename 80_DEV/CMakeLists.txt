@@ -8,9 +8,9 @@ include(cmake/utils.cmake)
 
 #################### Add files to compile here ###################
 set(PROJECT_FILES main.cpp
-        Utilities/utils.cpp
-        Utilities/Window.cpp
-        Utilities/Texture.cpp)
+        utils.cpp
+        Window.cpp
+        Texture.cpp)
 ##################################################################
 
 set(OpenGL_GL_PREFERENCE LEGACY)
@@ -43,4 +43,5 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 ###################### Build, Link and Copy ######################
 add_executable(${PROJECT_NAME} ${PROJECT_FILES} ${GLAD_SRC_DIR}/glad.c)
 target_link_libraries(${PROJECT_NAME} ${realsense2_LIBRARY} ${OPENGL_LIBRARIES} glfw dl ${OpenCV_LIBS})
+makedlogo()
 copy_file("../00_DOC/DuneLogo.png")
