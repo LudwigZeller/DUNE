@@ -214,10 +214,6 @@ struct rect {
     }
 };
 
-struct rgb {
-    float r, g, b;
-};
-
 inline void set_viewport(const rect &r) {
     glViewport((int) r.x, (int) r.y, (int) r.w, (int) r.h);
     glLoadIdentity();
@@ -236,6 +232,6 @@ unsigned int createShader(const ShaderProgramSource &source);
 
 static unsigned int compileShader(unsigned int type, const std::string &source);
 
-std::string delta_timestamp_str();
+cv::Mat assetToMat(unsigned int width, unsigned int height, const char *data);
 
 #endif //DEPTHCAMERA_UTILS_HPP

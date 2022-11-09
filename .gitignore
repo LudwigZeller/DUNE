@@ -4,6 +4,8 @@ cmake-build*
 .vscode
 90_BUILD/*
 !90_BUILD/.ignorethis
+*.dres
+!assets.dres
 
 # Prerequisites
 *.d

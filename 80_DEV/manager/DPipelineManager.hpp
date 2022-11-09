@@ -42,6 +42,7 @@
 #include "../config.hpp"
 #include "../utils.hpp"
 #include "../RTE.hpp"
+#include "../assets.dres"
 
 using namespace std::chrono;
 
@@ -119,7 +120,8 @@ public:
         glfwMakeContextCurrent(RTE::window.getwndptr());
 
         //!! Member init
-        logo = cv::imread("DuneLogo.png");
+        logo = assetToMat(DLOGO_WIDTH, DLOGO_HEIGHT, DLOGO_DATA);
+        //cv::imread("DuneLogo.png");
         debug_str = "";
         tick = 0ULL;
 
@@ -165,6 +167,7 @@ public:
         //! Or draw idle logo
         else
         {
+            //draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), logo);
             fun();
         }
 

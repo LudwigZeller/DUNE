@@ -51,8 +51,10 @@ endfunction()
 
 # MakeDLogo script
 function(makedlogo)
-    message(STATUS "${PROJECT_SOURCE_DIR}/assets/MakeDLogo.bash run")
-    add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
-        COMMAND bash ${PROJECT_SOURCE_DIR}/assets/MakeDLogo.bash ${PROJECT_SOURCE_DIR}/assets
+#    add_custom_target(DuneLogoMaker COMMAND bash ${PROJECT_SOURCE_DIR}/assets/MakeDLogo.bash ${PROJECT_SOURCE_DIR}/assets)
+    add_custom_target(DuneLogoMaker
+        COMMAND make run
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/assets/DuneLogoMaker
     )
+    add_dependencies(${PROJECT_NAME} DuneLogoMaker)
 endfunction()
