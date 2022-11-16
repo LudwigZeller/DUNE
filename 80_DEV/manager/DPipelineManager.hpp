@@ -158,23 +158,76 @@ public:
                 RTE::window.resssw();
             }
 
+            //! GL Viewport
+            glViewport(RTE::resizex, RTE::resizey, RTE::resizewidth, RTE::resizeheight);
+            glfwWindowHint(GLFW_AUTO_ICONIFY, GL_TRUE);
+
+            //! Test
+            RTE::write_matrix_mutex.lock();
+            RTE::depth_matrix_mutex.lock();
+            if(!RTE::write_matrix.empty())
+                RTE::write_matrix.forEach<cv::Vec3b>([](cv::Vec3b &pixel, const int *pos)
+                {
+                    //Blue Green RED
+                    const double line = 0.002;
+                    const cv::Vec3b black{0,0,0};
+                    const cv::Vec3b blue{255,0,0};
+                    const cv::Vec3b green{33, 176, 50};
+                    const cv::Vec3b brown{27, 76, 105};
+                    const cv::Vec3b lightbrown{39, 159, 186};
+                    const cv::Vec3b red{50, 50, 179};
+                    const cv::Vec3b white{255,255,255};
+                    const cv::Vec3b grey{196,196,196};
+                    float depth = RTE::depth_matrix.at<double>(pos);
+                    if(depth < 1)
+                        pixel = black;
+                    else if(depth > 1 && depth < (1.05 - line))
+                        pixel = white;
+                    else if(depth > (1.05 + line) && depth < (1.1 - line))
+                        pixel = red;
+                    else if(depth > (1.1 + line) && depth < (1.13 - line))
+                        pixel = lightbrown;
+                    else if(depth > (1.13 + line) && depth < (1.19 - line))
+                        pixel = green;
+                    else if(depth > (1.19 + line) && depth < 1.24)
+                        pixel = blue;
+                    else if(depth > 1.24)
+                        pixel = black;
+                    else
+                        pixel = grey;
+                    // int mode = 
+                    //     (depth[0] > 150) ? (
+                    //         (depth[1] > 150) ? (1)
+                    //         :(depth[2] > 150) ? (1)
+                    //         : (0)
+                    //     ) : (depth[1] > 150) ? (
+                    //         (depth[2] > 150) ? (1)
+                    //         : (0)
+                    //     ) : (0);
+                    // if(mode && (((pos[0] + pos[1]) % 16) > 7) || !mode && ((abs(pos[0] - pos[1]) % 16) > 7)) {
+                    //     depth = RTE::color_matrix.at<cv::Vec3b>(pos[0],pos[1]);
+                    // }
+                });
+            
+            glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
             //! Draw from matrix
             if(sw)
                 draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), RTE::color_matrix);
             else
-                draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), RTE::window_out_matrix);
+                draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), RTE::write_matrix);
+            RTE::write_matrix_mutex.unlock();
+            RTE::depth_matrix_mutex.unlock();
         }
         //! Or draw idle logo
         else
         {
-            //draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), logo);
             fun();
         }
 
         //!! Compiler-level configurable on-screen debug information
         #if DEBUG_ON_SCREEN
         debug_str = "Last ela:\n " + std::to_string(RTE::millis_pm) + "ms[PL]\n " + std::to_string(RTE::millis_rm) + "ms[RS]";
-        draw_text_debug(10, 10, debug_str.c_str());
+        draw_text_debug(10, 50, debug_str.c_str());
         #endif
     }
 
@@ -215,6 +268,7 @@ public:
             while(x < 0 || x > w)
                 x += vx;
         }
+        glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
         //! Draw
         draw_frame(cv::Size((int) iw, (int) ih),

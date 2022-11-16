@@ -114,9 +114,12 @@ public:
         {
             if(grabberMgr)
                 grabberMgr.notify();
+                
             if(pipelineMgr)
                 pipelineMgr.notify();
         }
+
+        //!! Extra ending functions
         this->grabberMgr.end_stream();
         this->call_termination();
     }

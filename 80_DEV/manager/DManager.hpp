@@ -170,6 +170,7 @@ public:
     /**
      * @fn void DManager::DManager::run()
      * @brief this code will be run in a seperate thread
+     * @ref https://stackoverflow.com/questions/52610776/how-to-wake-a-stdthread-while-it-is-sleeping
      */
     void run()
     {

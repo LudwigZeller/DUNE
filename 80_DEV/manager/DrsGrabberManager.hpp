@@ -41,6 +41,7 @@
 #include "DManager.hpp"
 #include "../config.hpp"
 #include "../RTE.hpp"
+#include "../utils.hpp"
 
 using namespace std::chrono;
 
@@ -148,6 +149,7 @@ public:
      * @brief Cyclic routine of Grabber Manager.
      * @brief Grabs depth and color frame from Realsense camera. Saves to RTE.
      */
+    /// @brief 
     virtual void run_user() override try
     {
         //!! Routine 1: No camera has been connected
@@ -199,7 +201,9 @@ public:
         //!! Routine 2: Camera is connected and can grab frames from rs pipeline
         if(pipe.poll_for_frames(&frames))
         {
-
+            RTE::depth_matrix_mutex.lock();
+            RTE::color_matrix_mutex.lock();
+            RTE::write_matrix_mutex.lock();
             /***** GRAB FRAMES *****/
             frames = align_to.process(frames);
             auto color_frame = frames.get_color_frame();
@@ -207,20 +211,28 @@ public:
 
             /***** PROCESS FRAMES *****/
             auto depth = frames
-                    .apply_filter(temporal)
+                    .apply_filter(temporal);
             //      .apply_filter(filler)
-                    .apply_filter(colorizer);
+            //        .apply_filter(colorizer);
 
             /***** CONVERT FRAMES *****/
-            /**** DEPTH FRAME ****/
+            /**** WRITE FRAME ****/
             cv::Mat mat(
                 cv::Size(depth_frame.get_width(), depth_frame.get_height()),
                 CV_8UC3,
                 (void *) depth.get_data(),
                 cv::Mat::AUTO_STEP
             );
+            
+            
+            RTE::write_matrix = mat;
+            RTE::write_matrix_mutex.unlock();
+            /**** DEPTH FRAME ****/
+            cv::Mat dmat = depth_frame_to_meters(frames.get_depth_frame());
 
-            RTE::window_out_matrix = mat;
+            
+            RTE::depth_matrix = dmat;
+            RTE::depth_matrix_mutex.unlock();
 
             /**** COLOR FRAME ****/
             cv::Mat cmat(
@@ -230,7 +242,14 @@ public:
                 cv::Mat::AUTO_STEP
             );
 
+            
             RTE::color_matrix = cmat;
+            RTE::color_matrix_mutex.unlock();
+
+            RTE::resizewidth = RTE::window.realwidth();
+            RTE::resizeheight = RTE::window.realwidth() * (float) frames.get_depth_frame().get_height() / (float) frames.get_depth_frame().get_width();
+            RTE::resizex = 0.0f;
+            RTE::resizey = abs(RTE::resizeheight - RTE::window.realheight()) / 2;
         }
         //! Reset counter
         count_errors = 0;
