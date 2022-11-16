@@ -152,6 +152,7 @@ public:
      */
     ~DManager()
     {
+        clog(err) << "Pre term" << this->flags.name << std::endl;
         //! Takes ownership over mutex in scope. Mutex "freed" upon destruction
         {
             std::lock_guard<std::mutex> l(this->mutex);
@@ -165,6 +166,8 @@ public:
             this->thread.join();
             clog(info) << "Automatic termination of " << this->flags.name << " " << std::endl;
         }
+
+        clog(err) << "Post term" << this->flags.name << std::endl;
     }
 
     /**

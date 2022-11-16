@@ -81,7 +81,7 @@ public:
      */
     ~DControlManager()
     {
-        call_termination();
+        //call_termination();
     }
 
     /**
@@ -121,7 +121,7 @@ public:
 
         //!! Extra ending functions
         this->grabberMgr.end_stream();
-        this->call_termination();
+        //this->call_termination();
     }
 };
 

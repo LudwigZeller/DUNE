@@ -58,6 +58,7 @@ Window::Window(const char *title, bool fullscreen, const char *override) {
 
     /******************* Configuration ********************/
     glfwSwapInterval(1);
+    glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
 
     glfwSetKeyCallback(window, Window::onKey);
 
@@ -122,4 +123,28 @@ void Window::onKeyCustom(GLFWwindow *window, int key, int scancode, int action, 
         clog(warn) << "Switching stream.." << std::endl;
         _should_sw = true;
     }
+    else if(key == GLFW_KEY_Q && action == GLFW_RELEASE) {
+        _capture_flag = true;
+    }
+    else if(key == GLFW_KEY_E && action == GLFW_RELEASE)
+    {
+        if(file_exists("capture-0.dres"))
+        {
+            clog(warn) << "Switch to captures!" << std::endl;
+            _show_captures = !_show_captures;
+        }
+    }
+    else if(key == GLFW_KEY_R && action == GLFW_RELEASE && _show_captures)
+    {
+        _sel_capture++;
+        if(!file_exists(std::string("capture-") + std::to_string(_sel_capture) + ".dres"))
+            _sel_capture = 0;
+    }
+    else if(key == GLFW_KEY_F && action == GLFW_RELEASE && _show_captures)
+    {
+        _sel_capture--;
+        if(!file_exists(std::string("capture-") + std::to_string(_sel_capture) + ".dres"))
+            while(file_exists(std::string("capture-") + std::to_string(++_sel_capture) + ".dres"));
+    }
+
 }

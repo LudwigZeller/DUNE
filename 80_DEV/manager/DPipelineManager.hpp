@@ -121,7 +121,6 @@ public:
 
         //!! Member init
         logo = assetToMat(DLOGO_WIDTH, DLOGO_HEIGHT, DLOGO_DATA);
-        //cv::imread("DuneLogo.png");
         debug_str = "";
         tick = 0ULL;
 
@@ -149,7 +148,7 @@ public:
         }
 
         //! Draw drame
-        if(RTE::camera_connected)
+        if(RTE::camera_connected && !RTE::window.getshowcap())
         {
             //! Switch upon 'c' keypress
             if(RTE::window.getssw())
@@ -160,63 +159,180 @@ public:
 
             //! GL Viewport
             glViewport(RTE::resizex, RTE::resizey, RTE::resizewidth, RTE::resizeheight);
-            glfwWindowHint(GLFW_AUTO_ICONIFY, GL_TRUE);
+            //glfwWindowHint(GLFW_AUTO_ICONIFY, GL_TRUE);
+            //glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
-            //! Test
+            //!! Lock
             RTE::write_matrix_mutex.lock();
             RTE::depth_matrix_mutex.lock();
+
+            //const cv::Mat m
+
+            // Constants
+            const double line = 0.001;
+            const cv::Vec3b black{0,0,0};
+            const cv::Vec3b blue{255,0,0};
+            const cv::Vec3b green{33, 176, 50};
+            const cv::Vec3b brown{27, 76, 105};
+            const cv::Vec3b lightbrown{39, 159, 186};
+            const cv::Vec3b red{50, 50, 179};
+            const cv::Vec3b white{255,255,255};
+            const cv::Vec3b grey{196,196,196};
+
             if(!RTE::write_matrix.empty())
-                RTE::write_matrix.forEach<cv::Vec3b>([](cv::Vec3b &pixel, const int *pos)
+            {
+                if(RTE::write_history3.empty())
                 {
-                    //Blue Green RED
-                    const double line = 0.002;
-                    const cv::Vec3b black{0,0,0};
-                    const cv::Vec3b blue{255,0,0};
-                    const cv::Vec3b green{33, 176, 50};
-                    const cv::Vec3b brown{27, 76, 105};
-                    const cv::Vec3b lightbrown{39, 159, 186};
-                    const cv::Vec3b red{50, 50, 179};
-                    const cv::Vec3b white{255,255,255};
-                    const cv::Vec3b grey{196,196,196};
-                    float depth = RTE::depth_matrix.at<double>(pos);
+                    RTE::write_history3 = RTE::depth_matrix;
+                    RTE::write_history2 = RTE::depth_matrix;
+                    RTE::write_history1 = RTE::depth_matrix;
+                }
+
+                RTE::write_matrix.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos)
+                {
+                    double depth = RTE::depth_matrix.at<double>(pos)
+                        +   RTE::write_history1.at<double>(pos)
+                        +   RTE::write_history2.at<double>(pos)
+                        +   RTE::write_history3.at<double>(pos);
+                    depth /= 4.0;
+
                     if(depth < 1)
                         pixel = black;
-                    else if(depth > 1 && depth < (1.05 - line))
+                    else if(depth > 1 && depth < (1.05 - line)){
                         pixel = white;
-                    else if(depth > (1.05 + line) && depth < (1.1 - line))
+                    }
+                    else if(depth > (1.05 + line) && depth < (1.1 - line)){
                         pixel = red;
-                    else if(depth > (1.1 + line) && depth < (1.13 - line))
+                    }
+                    else if(depth > (1.1 + line) && depth < (1.13 - line)){
                         pixel = lightbrown;
-                    else if(depth > (1.13 + line) && depth < (1.19 - line))
+                    }
+                    else if(depth > (1.13 + line) && depth < (1.18 - line)){
                         pixel = green;
-                    else if(depth > (1.19 + line) && depth < 1.24)
+                    }
+                    else if(depth > (1.18 + line) && depth < 1.24){
                         pixel = blue;
-                    else if(depth > 1.24)
+                    }
+                    else if(depth > 1.24){
                         pixel = black;
-                    else
+                    }
+                    else{
                         pixel = grey;
-                    // int mode = 
-                    //     (depth[0] > 150) ? (
-                    //         (depth[1] > 150) ? (1)
-                    //         :(depth[2] > 150) ? (1)
-                    //         : (0)
-                    //     ) : (depth[1] > 150) ? (
-                    //         (depth[2] > 150) ? (1)
-                    //         : (0)
-                    //     ) : (0);
-                    // if(mode && (((pos[0] + pos[1]) % 16) > 7) || !mode && ((abs(pos[0] - pos[1]) % 16) > 7)) {
-                    //     depth = RTE::color_matrix.at<cv::Vec3b>(pos[0],pos[1]);
-                    // }
+                    }
                 });
+
+                RTE::write_history3 = RTE::write_history2;
+                RTE::write_history2 = RTE::write_history1;
+                RTE::write_history1 = RTE::depth_matrix;
+            }
             
-            glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
             //! Draw from matrix
-            if(sw)
+            if(sw) {
+                if(RTE::window.getcapture())
+                {
+                    capture(RTE::color_matrix);
+                    captureDepth(RTE::xtra);
+                    RTE::window.rescapture();
+                }
                 draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), RTE::color_matrix);
-            else
+            }
+            else {
+                if(RTE::window.getcapture())
+                {
+                    capture(RTE::write_matrix);
+                    captureDepth(RTE::xtra);
+                    RTE::window.rescapture();
+                }
                 draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), RTE::write_matrix);
+            }
             RTE::write_matrix_mutex.unlock();
             RTE::depth_matrix_mutex.unlock();
+        }
+        else if(RTE::window.getshowcap())
+        {
+            #include "../../90_BUILD/capture-0.dres"
+            #include "../../90_BUILD/capture-1.dres"
+            #include "../../90_BUILD/capture-2.dres"
+            #include "../../90_BUILD/capture-3.dres"
+            #include "../../90_BUILD/capture-4.dres"
+            #include "../../90_BUILD/capture-5.dres"
+            #include "../../90_BUILD/capture-6.dres"
+            #include "../../90_BUILD/capture-7.dres"
+            #include "../../90_BUILD/capture-8.dres"
+            #include "../../90_BUILD/capture-9.dres"
+            #include "../../90_BUILD/capture-10.dres"
+            #include "../../90_BUILD/capture-11.dres"
+            #include "../../90_BUILD/capture-12.dres"
+            #include "../../90_BUILD/capture-13.dres"
+            #include "../../90_BUILD/capture-14.dres"
+            #include "../../90_BUILD/capture-15.dres"
+            #include "../../90_BUILD/capture-16.dres"
+
+            static int s_i = RTE::window.getisels();
+            #define atm(a) assetToMat(CAPTURE_ ## a ## _WIDTH, CAPTURE_ ## a ## _HEIGHT, CAPTURE_ ## a ## _DATA);
+            static cv::Mat s_mat = atm(0);
+
+            if(s_i != RTE::window.getisels())
+            {
+                s_i = RTE::window.getisels();
+
+                switch(s_i)
+                {
+                    case 0:
+                        s_mat = atm(0);
+                    break;
+                    case 1:
+                        s_mat = atm(1);
+                    break;
+                    case 2:
+                        s_mat = atm(2);
+                    break;
+                    case 3:
+                        s_mat = atm(3);
+                    break;
+                    case 4:
+                        s_mat = atm(4);
+                    break;
+                    case 5:
+                        s_mat = atm(5);
+                    break;
+                    case 6:
+                        s_mat = atm(6);
+                    break;
+                    case 7:
+                        s_mat = atm(7);
+                    break;
+                    case 8:
+                        s_mat = atm(8);
+                    break;
+                    case 9:
+                        s_mat = atm(9);
+                    break;
+                    case 10:
+                        s_mat = atm(10);
+                    break;
+                    case 11:
+                        s_mat = atm(11);
+                    break;
+                    case 12:
+                        s_mat = atm(12);
+                    break;
+                    case 13:
+                        s_mat = atm(13);
+                    break;
+                    case 14:
+                        s_mat = atm(14);
+                    break;
+                    case 15:
+                        s_mat = atm(15);
+                    break;
+                    default:
+                        s_mat = atm(16);
+                }
+            }
+            
+            glViewport(RTE::resizex, RTE::resizey, RTE::resizewidth, RTE::resizeheight);
+            draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), s_mat);
         }
         //! Or draw idle logo
         else
@@ -237,7 +353,7 @@ public:
      */
     inline void fun()
     {
-        #define MAXV 10
+        #define MAXV 20
 
         static int x = 0;
         static int y = 0;
@@ -268,7 +384,6 @@ public:
             while(x < 0 || x > w)
                 x += vx;
         }
-        glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 
         //! Draw
         draw_frame(cv::Size((int) iw, (int) ih),

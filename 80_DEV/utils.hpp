@@ -8,6 +8,7 @@
 #include "config.hpp"
 
 #include <cassert>
+#include <iomanip>
 #include <fstream>
 #include <iostream>
 #include "glad/glad.h"
@@ -233,5 +234,118 @@ unsigned int createShader(const ShaderProgramSource &source);
 static unsigned int compileShader(unsigned int type, const std::string &source);
 
 cv::Mat assetToMat(unsigned int width, unsigned int height, const char *data);
+
+static const char CHHEX_Translate[17] = "0123456789ABCDEF";
+
+inline void saveMatAsFile(const cv::Mat &cln, const std::string name, const std::string path)
+{
+    uchar *dat = (uchar*) cln.ptr<uchar[3]>();
+    cv::Size s = cln.size();
+    std::ofstream dlm_out(path);
+    clog(info) << "Creating asset: " << path << std::endl;
+    
+    dlm_out <<
+        "/**\n * Auto-generated resource \"" << path << "\" originating from OpenCV matrix"         \
+        "\n * Asset \"" << name << "\" created for DUNE Project\n * @author David Schoosleitner"                       \
+        "\n * (c) David Schoosleitner 2022\n */\n\n#pragma once\n\n/***** DATA *****/\n" << std::endl;
+    dlm_out << "//! Matrix Width\n#define " << name << "_WIDTH (" << s.width << "u)\n" << std::endl;
+    dlm_out << "//! Matrix Height\n#define " << name << "_HEIGHT (" << s.height << "u)\n" << std::endl;
+    dlm_out << "//! Matrix Data: Hex format 0x[BBGGRR]0x[....\n#define " << name << "_DATA ( \\" << std::endl;
+
+    std::string tmpdat;
+
+    {
+        std::stringstream dlm_tmp1;
+
+        std::string row = "";
+        std::string set_full = "";
+        std::string set = "";
+        uchar g = 0;
+        uchar l = 255;
+        int count = 0;
+
+        for(int i = 0; i < s.height; i++)
+        {
+            dlm_tmp1 << "  \"";
+            row = "";
+            g = 255;
+            count = 0;
+            for(int j = 0; j < s.width; j++)
+            {
+                for(int k = 0; k < 3; k++)
+                {
+                    l = g;
+                    g = (dat[3*(j + i * s.width) + k]);
+                    if(g == l && count < 26)
+                    {
+                        set = (char)(count + 'a');
+                        set += CHHEX_Translate[g >> 4];
+                        set += CHHEX_Translate[g & 0x0F];
+                        count++;
+                    }
+                    else
+                    {
+                        count = 0;
+                        row += set;
+                        set = CHHEX_Translate[g >> 4];
+                        set += CHHEX_Translate[g & 0x0F];
+                    }
+                }
+            }
+            dlm_tmp1 << row << "\" \\" << std::endl;
+
+        }
+        tmpdat = dlm_tmp1.str();
+    }
+
+    dlm_out << tmpdat << std::flush;
+
+    dlm_out << ")\n/// " << name << "\n" << std::endl;
+    dlm_out.close();
+    clog(info) << "Done " << name << std::endl;
+}
+
+inline void saveMatDepth(const cv::Mat &cln, const std::string name, const std::string path)
+{
+    short *dat = (short*) cln.ptr<short>();
+    cv::Size s = cln.size();
+    std::ofstream dlm_out(path);
+    clog(info) << "Creating depth asset: " << path << std::endl;
+    
+    dlm_out <<
+        "/**\n * Auto-generated depth resource \"" << path << "\" originating from rs depth matrix"         \
+        "\n * Asset \"" << name << "\" created for DUNE Project\n * @author David Schoosleitner"                       \
+        "\n * (c) David Schoosleitner 2022\n */\n\n#pragma once\n\n/***** DATA *****/\n" << std::endl;
+    dlm_out << "//! Matrix Width\n#define " << name << "_WIDTH (" << s.width << "u)\n" << std::endl;
+    dlm_out << "//! Matrix Height\n#define " << name << "_HEIGHT (" << s.height << "u)\n" << std::endl;
+    dlm_out << "//! Matrix Data: Hex format 0x[BBGGRR]0x[....\n#define " << name << "_DATA (short[]{ \\" << std::endl;
+
+    for(int i = 0; i < s.height; i++)
+    {
+
+        dlm_out << "  ";
+
+        for(int j = 0; j < s.width; j++)
+        {
+            dlm_out << dat[j + i * s.width] << ", ";
+        }
+
+        dlm_out << "\t\\" << std::endl;
+
+    }
+
+    dlm_out << "})\n/// " << name << "\n" << std::endl;
+    dlm_out.close();
+    clog(info) << "Done " << name << std::endl;
+}
+
+void capture(const cv::Mat &cln);
+void captureDepth(const cv::Mat &cln);
+
+inline bool file_exists(const std::string path)
+{
+    std::ifstream f(path);
+    return f.good();
+}
 
 #endif //DEPTHCAMERA_UTILS_HPP

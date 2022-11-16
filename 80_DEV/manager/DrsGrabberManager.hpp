@@ -228,6 +228,7 @@ public:
             RTE::write_matrix = mat;
             RTE::write_matrix_mutex.unlock();
             /**** DEPTH FRAME ****/
+            RTE::xtra = frame_to_mat(frames.get_depth_frame());
             cv::Mat dmat = depth_frame_to_meters(frames.get_depth_frame());
 
             

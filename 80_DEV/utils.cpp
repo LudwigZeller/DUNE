@@ -242,3 +242,17 @@ cv::Mat assetToMat(unsigned int width, unsigned int height, const char *data)
 
     return {tmp};
 }
+
+void capture(const cv::Mat &cln)
+{
+    static int check = 0;
+    while(file_exists(std::string("capture-") + std::to_string(check) + ".dres")) check++;
+    saveMatAsFile(cln, std::string("CAPTURE_") + std::to_string(check), std::string("capture-") + std::to_string(check) + ".dres");
+}
+
+void captureDepth(const cv::Mat &cln)
+{
+    static int check = 0;
+    while(file_exists(std::string("capture-depth-") + std::to_string(check) + ".dres")) check++;
+    saveMatDepth(cln, std::string("CAPTURE_DEPTH_") + std::to_string(check), std::string("capture-depth-") + std::to_string(check) + ".dres");
+}

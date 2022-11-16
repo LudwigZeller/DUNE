@@ -17,6 +17,10 @@ namespace RTE
     static std::mutex depth_matrix_mutex;
     static cv::Mat color_matrix;
     static std::mutex color_matrix_mutex;
+    static cv::Mat write_history1;
+    static cv::Mat write_history2;
+    static cv::Mat write_history3;
+    static cv::Mat xtra;
     static bool camera_connected = false;
     static bool window_open = false;
     static bool terminate_all = false;
