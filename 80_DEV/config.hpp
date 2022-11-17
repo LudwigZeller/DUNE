@@ -40,7 +40,7 @@
 
 #define FPS                             (15.0f)         //< Frames per second constant, used by pipeline
 #define CPS                             (15u)           //< Captures per second constant, used by rs Grabber
-#define FULLSCREEN                      (false)          //< Fullscreen constant for window
+#define FULLSCREEN                      (true)          //< Fullscreen constant for window
 #define CYCLE_COUNTER_AVERAGE           (10)            //< Number of ms/frame to be logged
 #define CALIBRATION_LOOP_THRESHOLD      (10)            //< Number of frames allowed to elapse until calibration cycle
 #define DEBUG_ON_SCREEN                 (true)          //< Do display debug information onscreen

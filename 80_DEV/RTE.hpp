@@ -10,6 +10,7 @@
 
 namespace RTE
 {
+    static rs2::pipeline pipe{};
     static cv::Mat write_matrix;
     static std::mutex write_matrix_mutex;
     static std::atomic<bool> prim_write_m = false;
@@ -26,8 +27,8 @@ namespace RTE
     static bool terminate_all = false;
     static int exit_code_pipeline = 0;
     static int do_color = false;
-    static int millis_pm = 0;
-    static int millis_rm = 0;
+    static std::atomic<int> millis_pm = 0;
+    static std::atomic<int> millis_rm = 0;
     static Window window{"DUNE", FULLSCREEN};
     static float resizewidth = 0.0f;
     static float resizeheight = 0.0f;

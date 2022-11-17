@@ -95,8 +95,7 @@ cv::Mat frame_to_mat(const rs2::frame &f) {
     } else if (f.get_profile().format() == RS2_FORMAT_DISPARITY32) {
         return {Size(w, h), CV_32FC1, (void *) f.get_data(), Mat::AUTO_STEP};
     }
-
-    throw std::runtime_error("Frame format is not supported yet!");
+    throw std::runtime_error("Frame format is not supported!");
 }
 
 cv::Mat depth_frame_to_meters(const rs2::depth_frame &f) {

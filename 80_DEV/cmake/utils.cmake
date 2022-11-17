@@ -50,11 +50,11 @@ function(copy_directory_dll DIR)
 endfunction()
 
 # MakeDLogo script
-function(makedlogo)
+function(makeasset DEP WD NAM)
 #    add_custom_target(DuneLogoMaker COMMAND bash ${PROJECT_SOURCE_DIR}/assets/MakeDLogo.bash ${PROJECT_SOURCE_DIR}/assets)
-    add_custom_target(DuneLogoMaker
-        COMMAND make run
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/assets/DuneLogoMaker
+    add_custom_target(${DEP}
+        COMMAND make run name=${NAM}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/assets/${WD}
     )
-    add_dependencies(${PROJECT_NAME} DuneLogoMaker)
+    add_dependencies(${PROJECT_NAME} ${DEP})
 endfunction()

@@ -101,6 +101,7 @@ public:
      */
     void launch()
     {
+        //long LOL = 100000000ULL;
         using namespace std::chrono;
 
         //!! Wait until all members finish initialization
@@ -117,6 +118,13 @@ public:
                 
             if(pipelineMgr)
                 pipelineMgr.notify();
+
+            //if(--LOL <= 0)
+            //{
+            //    if (!glfwWindowShouldClose(RTE::window.getwndptr()))
+            //clog(info) << "Window Force Escape" << std::endl;
+        //glfwSetWindowShouldClose(RTE::window.getwndptr(), GLFW_TRUE);
+            //}
         }
 
         //!! Extra ending functions

@@ -45,4 +45,5 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 ###################### Build, Link and Copy ######################
 add_executable(${PROJECT_NAME} ${PROJECT_FILES} ${GLAD_SRC_DIR}/glad.c)
 target_link_libraries(${PROJECT_NAME} ${realsense2_LIBRARY} ${OPENGL_LIBRARIES} glfw dl ${OpenCV_LIBS})
-makedlogo()
+makeasset(DuneLogo.png DuneLogoMaker dlm)
+makeasset(Tree.png AssetMaker tree_asmak)

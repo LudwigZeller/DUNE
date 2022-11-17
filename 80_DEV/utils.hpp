@@ -233,7 +233,14 @@ unsigned int createShader(const ShaderProgramSource &source);
 
 static unsigned int compileShader(unsigned int type, const std::string &source);
 
+/**
+ * @brief Warning! This function is only useable for RGB Matrices!
+*/
 cv::Mat assetToMat(unsigned int width, unsigned int height, const char *data);
+/**
+ * @brief Warning! This function is only useable for Z16-Depth Matrices!
+*/
+cv::Mat assetToMatDepth(unsigned int width, unsigned int height, const short *data);
 
 static const char CHHEX_Translate[17] = "0123456789ABCDEF";
 

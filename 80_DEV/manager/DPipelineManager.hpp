@@ -172,9 +172,10 @@ public:
             const double line = 0.001;
             const cv::Vec3b black{0,0,0};
             const cv::Vec3b blue{255,0,0};
+            const cv::Vec3b dark_blue{150,0,0};
             const cv::Vec3b green{33, 176, 50};
             const cv::Vec3b brown{27, 76, 105};
-            const cv::Vec3b lightbrown{39, 159, 186};
+            const cv::Vec3b yellow{39, 159, 186};
             const cv::Vec3b red{50, 50, 179};
             const cv::Vec3b white{255,255,255};
             const cv::Vec3b grey{196,196,196};
@@ -188,7 +189,8 @@ public:
                     RTE::write_history1 = RTE::depth_matrix;
                 }
 
-                RTE::write_matrix.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos)
+                /// @name Original Depth brute force
+                /*RTE::write_matrix.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos)
                 {
                     double depth = RTE::depth_matrix.at<double>(pos)
                         +   RTE::write_history1.at<double>(pos)
@@ -219,7 +221,83 @@ public:
                     else{
                         pixel = grey;
                     }
+                });*/
+
+                /// @name Gradient
+                /*RTE::write_matrix.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos)
+                {
+                    double depth = RTE::depth_matrix.at<double>(pos)
+                        +   RTE::write_history1.at<double>(pos)
+                        +   RTE::write_history2.at<double>(pos)
+                        +   RTE::write_history3.at<double>(pos);
+                    depth /= 4.0;
+
+                    if(depth < 1 || depth > 1.24)
+                    {
+                        pixel = black;
+                    }
+                    else
+                    {
+                        float grad = (depth - 1.0) * 10 + tick / 10.0;
+
+                        pixel = red * sin(grad) + blue * sin(grad + 2*3.14159/3.0) + green * sin(grad + 4*3.14159/3.0);
+                    }
+                });*/
+
+                cv::Mat wm = RTE::write_matrix.clone();
+
+                wm.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos)
+                {
+                    double depth = RTE::depth_matrix.at<double>(pos)
+                        +   RTE::write_history1.at<double>(pos)
+                        +   RTE::write_history2.at<double>(pos)
+                        +   RTE::write_history3.at<double>(pos);
+                    depth /= 4.0;
+
+                    if(depth < 1 || depth > 1.24)
+                    {
+                        pixel = black;
+                    }
+                    else
+                    {
+                        int grad = ((depth - 1.0) / 0.24) * 6;
+
+                        pixel =
+                            (0 == grad) ? white :
+                            (1 == grad) ? red   :
+                            (2 == grad) ? yellow:
+                            (3 == grad) ? green :
+                            (4 == grad) ? blue  :
+                            dark_blue;
+                    }
                 });
+
+                wm.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos)
+                {
+                    
+                });
+
+                RTE::write_matrix = wm;
+
+                /*RTE::write_matrix.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos)
+                {
+                    cv::Vec3b eq = wm.at<cv::Vec3b>(pos);
+
+                    for(int i = 1; i < 9; i++)
+                    {
+                        int y = pos[0] - 1 + i / 3;
+                        int x = pos[1] + 1 + i % 3;
+                        if(y > 0 && y < RTE::write_matrix.size().height &&
+                            x > 0 && x < RTE::write_matrix.size().width)
+                        if(eq != wm.at<cv::Vec3b>(y, x))
+                        {
+                            pixel = grey;
+                            return;
+                        }
+                    }
+
+                    pixel = eq;
+                });*/
 
                 RTE::write_history3 = RTE::write_history2;
                 RTE::write_history2 = RTE::write_history1;
@@ -258,15 +336,6 @@ public:
             #include "../../90_BUILD/capture-5.dres"
             #include "../../90_BUILD/capture-6.dres"
             #include "../../90_BUILD/capture-7.dres"
-            #include "../../90_BUILD/capture-8.dres"
-            #include "../../90_BUILD/capture-9.dres"
-            #include "../../90_BUILD/capture-10.dres"
-            #include "../../90_BUILD/capture-11.dres"
-            #include "../../90_BUILD/capture-12.dres"
-            #include "../../90_BUILD/capture-13.dres"
-            #include "../../90_BUILD/capture-14.dres"
-            #include "../../90_BUILD/capture-15.dres"
-            #include "../../90_BUILD/capture-16.dres"
 
             static int s_i = RTE::window.getisels();
             #define atm(a) assetToMat(CAPTURE_ ## a ## _WIDTH, CAPTURE_ ## a ## _HEIGHT, CAPTURE_ ## a ## _DATA);
@@ -299,35 +368,8 @@ public:
                     case 6:
                         s_mat = atm(6);
                     break;
-                    case 7:
-                        s_mat = atm(7);
-                    break;
-                    case 8:
-                        s_mat = atm(8);
-                    break;
-                    case 9:
-                        s_mat = atm(9);
-                    break;
-                    case 10:
-                        s_mat = atm(10);
-                    break;
-                    case 11:
-                        s_mat = atm(11);
-                    break;
-                    case 12:
-                        s_mat = atm(12);
-                    break;
-                    case 13:
-                        s_mat = atm(13);
-                    break;
-                    case 14:
-                        s_mat = atm(14);
-                    break;
-                    case 15:
-                        s_mat = atm(15);
-                    break;
                     default:
-                        s_mat = atm(16);
+                        s_mat = atm(7);
                 }
             }
             

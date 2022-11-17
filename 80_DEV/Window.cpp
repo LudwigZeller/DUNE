@@ -30,7 +30,7 @@ Window::Window(const char *title, bool fullscreen, const char *override) {
     }
     GLFWwindow *window = glfwCreateWindow(glfwGetVideoMode(monitor)->width,
                                           glfwGetVideoMode(monitor)->height,
-                                          title, fullscreen ? monitor : nullptr, nullptr);
+                                          title, nullptr, nullptr);
 
     if(beamer) {
         int x,y;
@@ -58,7 +58,7 @@ Window::Window(const char *title, bool fullscreen, const char *override) {
 
     /******************* Configuration ********************/
     glfwSwapInterval(1);
-    glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
+    glfwSetWindowAttrib(window, GLFW_DECORATED, FULLSCREEN ? GLFW_FALSE : GLFW_TRUE);
 
     glfwSetKeyCallback(window, Window::onKey);
 
