@@ -255,3 +255,17 @@ void captureDepth(const cv::Mat &cln)
     while(file_exists(std::string("capture-depth-") + std::to_string(check) + ".dres")) check++;
     saveMatDepth(cln, std::string("CAPTURE_DEPTH_") + std::to_string(check), std::string("capture-depth-") + std::to_string(check) + ".dres");
 }
+
+cv::Mat assetToMatDepth(unsigned int width, unsigned int height, const short data[])
+{
+    cv::Mat tmp = cv::Mat(cv::Size(width, height), CV_16U);
+    short *dat = (short*) tmp.ptr<short>();
+    unsigned long long until = width * height;
+
+    for(auto i = 0ULL; i < until; i++)
+    {
+        dat[i] = data[i];
+    }
+
+    return tmp;
+}

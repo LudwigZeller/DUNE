@@ -71,7 +71,7 @@ private:
 
     //!! Managers are stored as members. Define and override their user functions via included .hpp
     DPipelineManager pipelineMgr{};
-    DrsGrabberManager grabberMgr{};
+    //DrsGrabberManager grabberMgr{};
 
 public:
 
@@ -92,7 +92,7 @@ public:
     void call_termination()
     {
         this->pipelineMgr.terminate();
-        this->grabberMgr.terminate();
+        //this->grabberMgr.terminate();
     }
 
     /**
@@ -105,7 +105,7 @@ public:
         using namespace std::chrono;
 
         //!! Wait until all members finish initialization
-        while(!grabberMgr.can_run());
+        //while(!grabberMgr.can_run());
         while(!pipelineMgr.can_run());
 
         clog(info) << "DONE! Loop starting!" << std::endl;
@@ -113,8 +113,8 @@ public:
         //!! Main loop
         while(!RTE::terminate_all)
         {
-            if(grabberMgr)
-                grabberMgr.notify();
+            //if(grabberMgr)
+            //    grabberMgr.notify();
                 
             if(pipelineMgr)
                 pipelineMgr.notify();
@@ -128,7 +128,7 @@ public:
         }
 
         //!! Extra ending functions
-        this->grabberMgr.end_stream();
+        //this->grabberMgr.end_stream();
         //this->call_termination();
     }
 };

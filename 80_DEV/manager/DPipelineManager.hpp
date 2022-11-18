@@ -86,6 +86,18 @@ public:
     {
     }
 
+    // Constants
+    const double line = 0.001;
+    const cv::Vec3b black{0,0,0};
+    const cv::Vec3b blue{255,0,0};
+    const cv::Vec3b dark_blue{150,0,0};
+    const cv::Vec3b green{33, 176, 50};
+    const cv::Vec3b brown{27, 76, 105};
+    const cv::Vec3b yellow{39, 159, 186};
+    const cv::Vec3b red{50, 50, 179};
+    const cv::Vec3b white{255,255,255};
+    const cv::Vec3b grey{196,196,196};
+
     /*****       CLASS MEMBERS       *****/
 
     //! Color/Depth stream switch
@@ -101,6 +113,8 @@ public:
     //! DEBUG: Debug string will be drawn to the top-left of the window if active.
     std::string debug_str;
     #endif
+
+    cv::Mat raw;
 
     /*****       CLASS FUNCTIONS       *****/
 
@@ -123,6 +137,9 @@ public:
         logo = assetToMat(DLOGO_WIDTH, DLOGO_HEIGHT, DLOGO_DATA);
         debug_str = "";
         tick = 0ULL;
+        #include "../../90_BUILD/test1.dres"
+        macro_depthAssetToMatrix(raw, CAPTURE_DEPTH_1_WIDTH, CAPTURE_DEPTH_1_HEIGHT, CAPTURE_DEPTH_1_DATA);
+        macro_matrixToMeters(raw);
 
         //!! Window validity and set RTE bool
         while(!RTE::window);
@@ -148,7 +165,7 @@ public:
         }
 
         //! Draw drame
-        if(RTE::camera_connected && !RTE::window.getshowcap())
+        if(RTE::camera_connected)
         {
             //! Switch upon 'c' keypress
             if(RTE::window.getssw())
@@ -167,18 +184,6 @@ public:
             RTE::depth_matrix_mutex.lock();
 
             //const cv::Mat m
-
-            // Constants
-            const double line = 0.001;
-            const cv::Vec3b black{0,0,0};
-            const cv::Vec3b blue{255,0,0};
-            const cv::Vec3b dark_blue{150,0,0};
-            const cv::Vec3b green{33, 176, 50};
-            const cv::Vec3b brown{27, 76, 105};
-            const cv::Vec3b yellow{39, 159, 186};
-            const cv::Vec3b red{50, 50, 179};
-            const cv::Vec3b white{255,255,255};
-            const cv::Vec3b grey{196,196,196};
 
             if(!RTE::write_matrix.empty())
             {
@@ -326,60 +331,65 @@ public:
             RTE::write_matrix_mutex.unlock();
             RTE::depth_matrix_mutex.unlock();
         }
-        else if(RTE::window.getshowcap())
-        {
-            #include "../../90_BUILD/capture-0.dres"
-            #include "../../90_BUILD/capture-1.dres"
-            #include "../../90_BUILD/capture-2.dres"
-            #include "../../90_BUILD/capture-3.dres"
-            #include "../../90_BUILD/capture-4.dres"
-            #include "../../90_BUILD/capture-5.dres"
-            #include "../../90_BUILD/capture-6.dres"
-            #include "../../90_BUILD/capture-7.dres"
-
-            static int s_i = RTE::window.getisels();
-            #define atm(a) assetToMat(CAPTURE_ ## a ## _WIDTH, CAPTURE_ ## a ## _HEIGHT, CAPTURE_ ## a ## _DATA);
-            static cv::Mat s_mat = atm(0);
-
-            if(s_i != RTE::window.getisels())
-            {
-                s_i = RTE::window.getisels();
-
-                switch(s_i)
-                {
-                    case 0:
-                        s_mat = atm(0);
-                    break;
-                    case 1:
-                        s_mat = atm(1);
-                    break;
-                    case 2:
-                        s_mat = atm(2);
-                    break;
-                    case 3:
-                        s_mat = atm(3);
-                    break;
-                    case 4:
-                        s_mat = atm(4);
-                    break;
-                    case 5:
-                        s_mat = atm(5);
-                    break;
-                    case 6:
-                        s_mat = atm(6);
-                    break;
-                    default:
-                        s_mat = atm(7);
-                }
-            }
-            
-            glViewport(RTE::resizex, RTE::resizey, RTE::resizewidth, RTE::resizeheight);
-            draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), s_mat);
-        }
         //! Or draw idle logo
         else
         {
-            fun();
+            cv::Mat wm(raw.size(), CV_8UC3);
+
+                wm.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos)
+                {
+                    double depth = raw.at<double>(pos);
+
+                    if(depth < 1 || depth > 1.24)
+                    {
+                        pixel = black;
+                    }
+                    else
+                    {
+                        int grad = ((depth - 1.0) / 0.24) * 6;
+
+                        pixel =
+                            (0 == grad) ? white :
+                            (1 == grad) ? red   :
+                            (2 == grad) ? yellow:
+                            (3 == grad) ? green :
+                            (4 == grad) ? blue  :
+                            dark_blue;
+                    }
+                });
+
+                
+                cv::Vec3b *wm_dat = wm.ptr<cv::Vec3b>();
+                cv::Size wm_s = wm.size();
+                cv::Mat wm2(wm_s, CV_8UC3);
+
+                wm2.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos)
+                {
+                    cv::Vec3b eq = wm.at<cv::Vec3b>(pos);
+
+                    for(int i = 1; i < 9; i++)
+                    {
+                        int y = pos[0] - 1 + i / 3;
+                        int x = pos[1] + 1 + i % 3;
+                        if(y > 0 && y < wm_s.height &&
+                            x > 0 && x < wm_s.width)
+                        if(eq != wm_dat[x + y * wm_s.width])
+                        {
+                            pixel = grey;
+                            return;
+                        }
+                    }
+
+                    pixel = eq;
+                });
+            
+            RTE::resizewidth = RTE::window.realheight() * (float) raw.size().width / (float) raw.size().height;
+            RTE::resizeheight = RTE::window.realheight();
+            RTE::resizex = 0.0f;
+            RTE::resizey = abs(RTE::resizeheight - RTE::window.realheight()) / 2;
+
+            glViewport(RTE::resizex, RTE::resizey, RTE::resizewidth, RTE::resizeheight);
+            draw_frame(cv::Size((int) RTE::window.width(), (int) RTE::window.height()), wm2);
         }
 
         //!! Compiler-level configurable on-screen debug information

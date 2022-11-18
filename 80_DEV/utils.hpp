@@ -355,4 +355,14 @@ inline bool file_exists(const std::string path)
     return f.good();
 }
 
+#define macro_depthAssetToMatrix(matrix, width, height, data) { \
+    short cursed[] = data;              \
+    matrix = assetToMatDepth(width, height, cursed); \
+}
+
+#define macro_matrixToMeters(matrix) { \
+    matrix.convertTo(matrix, CV_64F); \
+    matrix *= 0.001; \
+} 
+
 #endif //DEPTHCAMERA_UTILS_HPP
