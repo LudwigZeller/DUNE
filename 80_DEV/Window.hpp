@@ -34,8 +34,15 @@ public:
 
     void onKeyCustom(GLFWwindow *window, int key, int scancode, int action, int mods);
 
-    inline bool getssw() {return _should_sw;}
+    inline bool getssw() const {return _should_sw;}
     inline void resssw() {_should_sw = false;}
+    inline bool getcapture() const {return _capture_flag;}
+    inline void rescapture() {_capture_flag = false;}
+    inline bool getshowcap() const {return _show_captures;}
+    inline void setshowcap(const bool a) {_show_captures = a;}
+    inline int getisels() const {return _sel_capture;}
+    inline void setisels(const int a) {_sel_capture = a;}
+
     inline int realwidth() {int w; glfwGetWindowSize(_window, &w, NULL); return w;}
     inline int realheight() {int h; glfwGetWindowSize(_window, NULL, &h); return h;}
 
@@ -46,6 +53,9 @@ private:
     int _height;
     int _initialized = 0;
     bool _should_sw = false;
+    bool _capture_flag = false;
+    bool _show_captures = false;
+    int _sel_capture = 0;
     inline static int _window_count = 0;
 
     inline static void onKey(GLFWwindow *window, int key, int scancode, int action, int mods)

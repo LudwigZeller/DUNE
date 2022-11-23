@@ -71,7 +71,7 @@ private:
 
     //!! Managers are stored as members. Define and override their user functions via included .hpp
     DPipelineManager pipelineMgr{};
-    DrsGrabberManager grabberMgr{};
+    //DrsGrabberManager grabberMgr{};
 
 public:
 
@@ -81,7 +81,7 @@ public:
      */
     ~DControlManager()
     {
-        call_termination();
+        //call_termination();
     }
 
     /**
@@ -92,7 +92,7 @@ public:
     void call_termination()
     {
         this->pipelineMgr.terminate();
-        this->grabberMgr.terminate();
+        //this->grabberMgr.terminate();
     }
 
     /**
@@ -101,10 +101,11 @@ public:
      */
     void launch()
     {
+        //long LOL = 100000000ULL;
         using namespace std::chrono;
 
         //!! Wait until all members finish initialization
-        while(!grabberMgr.can_run());
+        //while(!grabberMgr.can_run());
         while(!pipelineMgr.can_run());
 
         clog(info) << "DONE! Loop starting!" << std::endl;
@@ -112,13 +113,23 @@ public:
         //!! Main loop
         while(!RTE::terminate_all)
         {
-            if(grabberMgr)
-                grabberMgr.notify();
+            //if(grabberMgr)
+            //    grabberMgr.notify();
+                
             if(pipelineMgr)
                 pipelineMgr.notify();
+
+            //if(--LOL <= 0)
+            //{
+            //    if (!glfwWindowShouldClose(RTE::window.getwndptr()))
+            //clog(info) << "Window Force Escape" << std::endl;
+        //glfwSetWindowShouldClose(RTE::window.getwndptr(), GLFW_TRUE);
+            //}
         }
-        this->grabberMgr.end_stream();
-        this->call_termination();
+
+        //!! Extra ending functions
+        //this->grabberMgr.end_stream();
+        //this->call_termination();
     }
 };
 

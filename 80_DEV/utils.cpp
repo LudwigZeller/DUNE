@@ -95,8 +95,7 @@ cv::Mat frame_to_mat(const rs2::frame &f) {
     } else if (f.get_profile().format() == RS2_FORMAT_DISPARITY32) {
         return {Size(w, h), CV_32FC1, (void *) f.get_data(), Mat::AUTO_STEP};
     }
-
-    throw std::runtime_error("Frame format is not supported yet!");
+    throw std::runtime_error("Frame format is not supported!");
 }
 
 cv::Mat depth_frame_to_meters(const rs2::depth_frame &f) {
@@ -241,4 +240,32 @@ cv::Mat assetToMat(unsigned int width, unsigned int height, const char *data)
     }
 
     return {tmp};
+}
+
+void capture(const cv::Mat &cln)
+{
+    static int check = 0;
+    while(file_exists(std::string("capture-") + std::to_string(check) + ".dres")) check++;
+    saveMatAsFile(cln, std::string("CAPTURE_") + std::to_string(check), std::string("capture-") + std::to_string(check) + ".dres");
+}
+
+void captureDepth(const cv::Mat &cln)
+{
+    static int check = 0;
+    while(file_exists(std::string("capture-depth-") + std::to_string(check) + ".dres")) check++;
+    saveMatDepth(cln, std::string("CAPTURE_DEPTH_") + std::to_string(check), std::string("capture-depth-") + std::to_string(check) + ".dres");
+}
+
+cv::Mat assetToMatDepth(unsigned int width, unsigned int height, const short data[])
+{
+    cv::Mat tmp = cv::Mat(cv::Size(width, height), CV_16U);
+    short *dat = (short*) tmp.ptr<short>();
+    unsigned long long until = width * height;
+
+    for(auto i = 0ULL; i < until; i++)
+    {
+        dat[i] = data[i];
+    }
+
+    return tmp;
 }

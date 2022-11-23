@@ -26,7 +26,7 @@ SOURCE_DIR := ./
 
 OUTPUT_FILE := $(BUILD_DIR)/makeDLogo
 
-CCFLAGS := -I/usr/local/include/opencv4
+CCFLAGS := -I/usr/local/include/opencv4 -L/usr/local/lib -I$(SOURCE_DIR)/../../dependencies/glad/include
 OPENCV_FLAGS := -lopencv_calib3d \
 -lopencv_core \
 -lopencv_dnn \

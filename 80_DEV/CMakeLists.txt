@@ -3,6 +3,7 @@
 ##################################################################
 cmake_minimum_required(VERSION 3.1.0)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_EXPORT_COMPILE_COMMANDS)
 project(DepthCamera)
 include(cmake/utils.cmake)
 
@@ -44,4 +45,5 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 ###################### Build, Link and Copy ######################
 add_executable(${PROJECT_NAME} ${PROJECT_FILES} ${GLAD_SRC_DIR}/glad.c)
 target_link_libraries(${PROJECT_NAME} ${realsense2_LIBRARY} ${OPENGL_LIBRARIES} glfw dl ${OpenCV_LIBS})
-makedlogo()
+makeasset(DUNELOGO DuneLogoMaker dlm DuneLogo dlm.cpp)
+makeasset(TREE AssetMaker tree_asmak Tree am.cpp)
