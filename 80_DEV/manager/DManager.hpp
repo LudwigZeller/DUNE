@@ -86,7 +86,8 @@ public:
         const std::chrono::milliseconds delay_target_period;            //< 4: Target delay; it acts as an offset
         const bool log_ela;                                             //< 5: Call std::cout for every elapsed time per tick
         const std::string name;                                         //< 6: Name used in log calls.
-        const int *adress_millis;                                       //< 7: Address to store millis elapse into.
+        const std::atomic<int> *adress_millis;                                       //< 7: Address to store millis elapse into.
+        const int max_lagbehind;
     };
 
 private:
@@ -165,11 +166,13 @@ public:
             this->thread.join();
             clog(info) << "Automatic termination of " << this->flags.name << " " << std::endl;
         }
+
     }
 
     /**
      * @fn void DManager::DManager::run()
      * @brief this code will be run in a seperate thread
+     * @ref https://stackoverflow.com/questions/52610776/how-to-wake-a-stdthread-while-it-is-sleeping
      */
     void run()
     {
@@ -201,9 +204,9 @@ public:
                 <std::chrono::milliseconds>
                 (now - start)
                 .count();
-            if(this->flags.adress_millis != NULL)
+            if(this->flags.adress_millis != nullptr)
             {
-                *((int*)(this->flags.adress_millis)) = this->milli_last_ela;
+                *((int*)(this->flags.adress_millis)) = this->milli_last_ela.load();
             }
 
             //! Print ela
@@ -247,6 +250,9 @@ public:
             this->running = 1;
         else
             this->running++;
+        
+        if(this->flags.max_lagbehind > 0 && this->running > this->flags.max_lagbehind)
+            throw std::runtime_error(std::string("Thread ") + this->flags.name + " has stopped working!");
         this->cv.notify_one();
     }
 
