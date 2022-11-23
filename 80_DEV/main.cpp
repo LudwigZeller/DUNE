@@ -51,16 +51,15 @@
 #include "config.hpp"
 #include "utils.hpp"
 #include "Window.hpp"
-#include "Texture.hpp"
-#include "manager/DControlManager.hpp"
+
+// Worker
+#include "Pipeline/Pipeline.hpp"
+#include "Pipeline/WindowWorker.hpp"
+#include "Pipeline/CameraProvider.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
-
-typedef cv::Vec3b Pixel;
-/****************************************\
-|               MAIN FN                  |
-\****************************************/
+#include <chrono>
 
 /**
  * @fn int main()
@@ -71,69 +70,17 @@ typedef cv::Vec3b Pixel;
 
 int main(int argc, char **argv)
 {
-    /*
-    uchar *dat = (uchar*)mat.ptr<uchar[3]>();
-    cv::Size s = mat.size();
-    int out = 0;
+    CameraProvider camera_provider{"Camera_Provider"};
 
-    if(!mat.isContinuous())
-    {
-        std::cout << "ERR NOT CONT" << std::endl;
-        exit(-1);
-    }
+    Window window{"DUNE", FULLSCREEN, "HDMI-3"};
+    WindowWorker window_worker{"Window_Worker", &window};
 
-    for(int i = 0; i < s.height; i++)
-    {
-        for(int j = 0; j < s.width; j++)
-        {
-            out = 0;
-            for(int k = 0; k < 3; k++)
-            {
-                out += dat[3*(j + i * s.width) + k];
-            }
-            printf("%3i ", out/3);
-        }
-        std::cout << std::endl;
-    }*/
+    Pipeline pipeline{&camera_provider};
 
-    //!! Parse arguments
-    char *device_name = nullptr;        //< Display device name
-
-    for(int i = 0; i < argc; ++i)
-    {
-        if((strlen(argv[i]) > 2) && (argv[i][0] == '-') && (argv[i][1] == 'm'))
-        {
-            device_name = argv[i] + 2;
-        }
-    }
+    pipeline.push_worker(&window_worker);
     
-    //!! Wait for init and run controller
-    while(!RTE::window.initialized());
-    DManager::DControlManager control;
-    control.launch();
+    pipeline.start();
 
-    if(RTE::window)
-    {
-        RTE::window.close();
-        while(RTE::window);
-    }
-
-    clog(info) << "Program exited normaly" << std::endl;
-    return RTE::exit_code_pipeline;
+    while(window);
 }
 
-/*
-depth_matrix.forEach<Pixel>([raw_matrix](Pixel &p, const int *pos){
-            const int x = pos[1];
-            const int y = pos[0];
-            const cv::float16_t &raw = raw_matrix.at<cv::float16_t>(y, x);
-            //cv::Vec3b &col_dat = dm->at<cv::Vec3b>(pos[0],pos[1]);
-            //const float dep = depth_frame.get_distance(pos[0], pos[1]);
-            //col_dat = (vec_v5-vec_ve*dep_dat);
-
-            p = {
-                (unsigned char)(3900000.0f*(1 - raw)),(unsigned char)(3900000.0f*(1 - raw)),
-                (unsigned char)(3900000.0f*(1 - raw))
-            };
-        });
-*/

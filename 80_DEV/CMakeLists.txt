@@ -12,7 +12,7 @@ set(PROJECT_FILES
         main.cpp
         utils.cpp
         Window.cpp
-        Texture.cpp)
+        Pipeline/Pipeline.cpp)
 ##################################################################
 
 set(OpenGL_GL_PREFERENCE LEGACY)
