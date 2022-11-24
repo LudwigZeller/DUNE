@@ -20,9 +20,11 @@ bool Pipeline::start() {
         m_running = true;
     }
     m_thread = std::thread{[this] {
+        clog(info) << "Pipeline running in " << std::this_thread::get_id() << std::endl;
+        cv::Mat transfer;
         while (this->m_running) {
             std::lock_guard<std::mutex> lock(m_pipeline_mutex);
-            cv::Mat transfer = std::move(m_provider->pop());
+            transfer = std::move(m_provider->pop());
             for (Worker *worker: m_pipeline) {
                 if (!transfer.empty()) worker->push(std::move(transfer));
                 transfer = std::move(worker->pop());

@@ -27,7 +27,7 @@ public:
         rs2::config config{};
         config.enable_device(device_list.front().get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
         config.enable_stream(RS2_STREAM_DEPTH, 480, 270, RS2_FORMAT_Z16, 15);
-        config.enable_stream(RS2_STREAM_COLOR, 1280, 720, RS2_FORMAT_BGR8, 15);
+        config.enable_stream(RS2_STREAM_COLOR, STREAM_WIDTH, STREAM_HEIGHT, RS2_FORMAT_BGR8, 15);
         //!! Trigger Routine 2
         m_pipe.start(config);
     };
@@ -53,17 +53,15 @@ public:
 
         
         /**** DEPTH FRAME ****/
-        //m_work_matrix = depth_frame_to_meters(frames.get_depth_frame());
+        m_work_matrix = depth_frame_to_meters(frames.get_depth_frame());
 
-        cv::Mat color_mat(
-                cv::Size(color_frame.get_width(), color_frame.get_height()),
-                CV_8UC3,
-                (void *) color_frame.get_data(),
-                cv::Mat::AUTO_STEP
-            );
-        m_work_matrix = color_mat.clone();
-
-        clog(info) << get_id() <<" provided Matrix!" << std::endl;
+        //cv::Mat color_mat(
+        //        cv::Size(color_frame.get_width(), color_frame.get_height()),
+        //        CV_8UC3,
+        //        (void *) color_frame.get_data(),
+        //        cv::Mat::AUTO_STEP
+        //    );
+        //m_work_matrix = color_mat.clone();
     };
 };
 

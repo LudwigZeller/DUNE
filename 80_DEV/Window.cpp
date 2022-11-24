@@ -3,10 +3,13 @@
 //
 
 #include "Window.hpp"
+#include "config.hpp"
+#include <cstring>
+#include <fstream>
+
 
 Window::Window(const char *title, bool fullscreen, const char *device) {
     /******************* Initialization ********************/
-    this->_initialized = 0;
     assert_log(glfwInit(), "GLFW initialization failed");
     clog(info) << "GLFW initialized!\n" << std::endl;
 
@@ -32,9 +35,9 @@ Window::Window(const char *title, bool fullscreen, const char *device) {
                                           glfwGetVideoMode(monitor)->height,
                                           title, nullptr, nullptr);
 
-    if(beamer) {
-        int x,y;
-        int w,h;
+    if (beamer) {
+        int x, y;
+        int w, h;
         glfwGetMonitorWorkarea(beamer, &x, &y, &w, &h);
         glfwSetWindowPos(window, x, y);
         glfwSetWindowSize(window, w, h);
@@ -82,8 +85,6 @@ Window::Window(const char *title, bool fullscreen, const char *device) {
             // TODO: Check if connected monitor is beamer and switch to it
         }
     });
-
-    this->_initialized = 1;
 }
 
 Window::~Window() {
@@ -94,6 +95,10 @@ Window::~Window() {
 }
 
 Window::operator bool() {
+    {
+        std::lock_guard<std::mutex> lock(m_draw_mutex);
+        draw_frame(cv::Size((int) this->width(), (int) this->height()), m_matrix);
+    }
     glPopMatrix();
     glfwSwapBuffers(_window);
 
@@ -112,39 +117,15 @@ Window::operator bool() {
     return res;
 }
 
-void Window::onKeyCustom(GLFWwindow *window, int key, int scancode, int action, int mods)
-{
+void Window::onKeyCustom(GLFWwindow *window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE) {
         if (!glfwWindowShouldClose(window))
             clog(info) << "Closed by Escape" << std::endl;
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
-    else if(key == GLFW_KEY_C && action == GLFW_RELEASE) {
-        clog(warn) << "Switching stream.." << std::endl;
-        _should_sw = true;
-    }
-    else if(key == GLFW_KEY_Q && action == GLFW_RELEASE) {
-        _capture_flag = true;
-    }
-    else if(key == GLFW_KEY_E && action == GLFW_RELEASE)
-    {
-        if(file_exists("capture-0.dres"))
-        {
-            clog(warn) << "Switch to captures!" << std::endl;
-            _show_captures = !_show_captures;
-        }
-    }
-    else if(key == GLFW_KEY_R && action == GLFW_RELEASE && _show_captures)
-    {
-        _sel_capture++;
-        if(!file_exists(std::string("capture-") + std::to_string(_sel_capture) + ".dres"))
-            _sel_capture = 0;
-    }
-    else if(key == GLFW_KEY_F && action == GLFW_RELEASE && _show_captures)
-    {
-        _sel_capture--;
-        if(!file_exists(std::string("capture-") + std::to_string(_sel_capture) + ".dres"))
-            while(file_exists(std::string("capture-") + std::to_string(++_sel_capture) + ".dres"));
-    }
+}
 
+void Window::render_matrix(cv::Mat &&matrix) {
+    std::lock_guard<std::mutex> lock(m_draw_mutex);
+    m_matrix = std::move(matrix);
 }

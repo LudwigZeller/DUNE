@@ -34,7 +34,7 @@ protected:
     virtual void start_up() = 0;
 public:
     explicit Worker(std::string id) : m_id(std::move(id)) {
-        clog(info) << "Constructed" << m_id << std::endl;
+        clog(info) << "Constructed " << m_id << std::endl;
     };
 
     virtual ~Worker() {
@@ -63,6 +63,7 @@ public:
         if (m_running) return false;
         m_running = true;
         m_thread = std::thread{[this] {
+            clog(info) << "Started thread " << std::this_thread::get_id() << ", for " << this->m_id << std::endl;
             this->start_up();
             while (this->m_running) {
                 if (!this->m_input.is_new) {

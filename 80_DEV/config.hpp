@@ -46,3 +46,6 @@
 #define DEBUG_ON_SCREEN                 (true)          //< Do display debug information onscreen
 #define VERSION                         ("V1.1 R6")     //< Version string literal
 #define DEFAULT_DEVICE_NAME             ("HDMI-3")      //< Preferred displaying device
+#define STREAM_WIDTH                    (1280)          //< Camera provider's output size width
+#define STREAM_HEIGHT                   (720)           //< Camera provider's output size height
+
