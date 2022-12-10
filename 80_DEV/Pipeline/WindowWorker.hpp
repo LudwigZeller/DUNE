@@ -12,7 +12,7 @@ private:
     Window *m_window;
 
 public:
-    WindowWorker(std::string id, Window *window) : Worker(std::move(id)){
+    WindowWorker(std::string id, Window *window) : Worker(std::move(id), MatIOType::VEC_3_CHAR_8, MatIOType::NONE){
         clog(info) << this->get_id() << " initialized!" << std::endl;
         m_window = window;
     };

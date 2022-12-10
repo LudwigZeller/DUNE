@@ -1,4 +1,5 @@
 #include "Pipeline.hpp"
+#include "MatIO.hpp"
 
 Pipeline::Pipeline(Provider *provider) {
     m_provider = provider;
@@ -6,8 +7,9 @@ Pipeline::Pipeline(Provider *provider) {
 
 Pipeline::~Pipeline() {
     this->stop();
-    delete m_provider;
-    for (Worker *worker: m_pipeline) delete worker;
+    //! Are declared as stack variables!!!
+    /*delete m_provider;
+    for (Worker *worker: m_pipeline) delete worker;*/
 }
 
 bool Pipeline::start() {
@@ -51,6 +53,16 @@ bool Pipeline::stop() {
 
 void Pipeline::push_worker(Worker *worker) {
     std::lock_guard<std::mutex> lock(m_pipeline_mutex);
+    
+    if(m_pipeline.size() <= 0 && m_provider->m_output_type.index != worker->m_input_type.index)
+    {
+        throw std::runtime_error(std::string("Mat types of \"") + m_provider->get_id() + "\" [" + m_provider->m_output_type.name + "] (prev) and \"" + worker->get_id() + "\" [" + worker->m_output_type.name + "] (new) are unequal!");
+    }
+    else if(m_pipeline.size() > 0 && m_pipeline.back()->m_output_type.index != worker->m_input_type.index)
+    {
+        throw std::runtime_error(std::string("Mat types of \"") + m_pipeline.back()->get_id() + "\" [" + m_pipeline.back()->m_output_type.name + "] (prev) and \"" + worker->get_id() + "\" [" + worker->m_output_type.name + "] (new) are unequal!");
+    }
+
     m_pipeline.push_back(worker);
     if (m_running)
         worker->start();

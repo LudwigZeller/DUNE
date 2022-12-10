@@ -61,6 +61,7 @@
 #include "Pipeline/FilterTemporalWorker.hpp"
 #include "Pipeline/FilterLineWorker.hpp"
 #include "Pipeline/FilterInterpolatorWorker.hpp"
+#include "Pipeline/FilterDiscreticiser.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -79,15 +80,17 @@ int main(int argc, char **argv)
     CameraProvider camera_provider{"Camera_Provider"};
     //Test_Provider camera_provider{"Test_Provider"};
 
-    Window window{"DUNE", FULLSCREEN, "HDMI-3"};
+    Window window{"DUNE", FULLSCREEN, "DP-4"};
     WindowWorker window_worker{"Window_Worker", &window};
     Filter::TemporalWorker temporal_worker1{"Filter_Temporal_Worker1"};
     Filter::ColorizeWorker colorize_worker{"Filter_Colorize_Worker"};
     Filter::LineWorker line_worker{"Filter_Line_Worker"};
     Filter::InterpolatorWorker interpolator_worker{"Filter_Interpolator_Worker"};
+    Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
 
     Pipeline pipeline{&camera_provider};
 
+    pipeline.push_worker(&discreticiser_worker);
     pipeline.push_worker(&temporal_worker1);
     pipeline.push_worker(&colorize_worker);
     pipeline.push_worker(&line_worker);

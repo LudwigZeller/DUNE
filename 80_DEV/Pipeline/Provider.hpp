@@ -31,7 +31,9 @@ protected:
     virtual void work() = 0;
 
 public:
-    explicit Provider(std::string id) : m_id(std::move(id)) {
+    const MatIOType::MatIOType_t m_output_type;
+
+    explicit Provider(std::string id, MatIOType::MatIOType_t output) : m_id(std::move(id)), m_output_type(output) {
         clog(info) << "Constructed " << m_id << std::endl;
     };
 

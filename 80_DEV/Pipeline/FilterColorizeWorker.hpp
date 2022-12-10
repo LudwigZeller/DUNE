@@ -24,45 +24,31 @@ public:
     const cv::Vec3b white{255,255,255};
     const cv::Vec3b grey{196,196,196};
 
-    explicit ColorizeWorker(std::string id): Worker{std::move(id)}
+private:
+    const cv::Vec3b col_index[DISCRETE_STEPS] = {
+        black, white, red, yellow, green, blue, dark_blue, black
+    };
+
+public:
+    explicit ColorizeWorker(std::string id): Worker{std::move(id), MatIOType::CHAR_8, MatIOType::VEC_3_CHAR_8}
     {
         clog(info) << this->get_id() << " initialized!" << std::endl;
     }
 
 protected:
+    cv::Mat tmp;
 
     void start_up() override
     { /* No init required right now */ }
 
     void work() override
     {
-        cv::Mat outp(this->m_work_matrix.size(), CV_8UC3);
-        this->m_work_matrix.forEach<double>([&](double &depth, const int *pos)
-        {
-            cv::Vec3b &pixel = outp.at<cv::Vec3b>(pos);
-            if(depth < 0.2)
-            {
-                int hm = (((pos[0] % 192) / 64) + ((pos[1] % 192) / 64)) % 3;
-                pixel = hm == 0 ? red : hm == 1 ? green : blue;
-                return;
-            }
-            if(depth < 1 || depth > 1.24)
-            {
-                pixel = black;
-            }
-            else
-            {
-                int grad = ((depth - 1.0) / 0.24) * 6;
-                pixel =
-                    (0 == grad) ? white :
-                    (1 == grad) ? red   :
-                    (2 == grad) ? yellow:
-                    (3 == grad) ? green :
-                    (4 == grad) ? blue  :
-                    dark_blue;
-            }
+        tmp = std::move(this->m_work_matrix);
+        this->m_work_matrix = cv::Mat(tmp.size(), CV_8UC3);
+
+        this->m_work_matrix.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos){
+            pixel = col_index[tmp.at<uchar>(pos)];
         });
-        this->m_work_matrix = outp;
     }
 
 };

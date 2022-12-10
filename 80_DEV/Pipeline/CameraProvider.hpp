@@ -6,12 +6,13 @@
 #include <chrono>
 #include <thread>
 #include <utility>
+#include "MatIO.hpp"
 
 class CameraProvider : public Provider {
     rs2::pipeline m_pipe{};
 
 public:
-    explicit CameraProvider(std::string id) : Provider(std::move(id)) {
+    explicit CameraProvider(std::string id) : Provider(std::move(id), MatIOType::SHORT_16) {
         //!! Get device
         rs2::context ctx;
         auto device_list = ctx.query_devices();
@@ -53,7 +54,7 @@ public:
 
         
         /**** DEPTH FRAME ****/
-        m_work_matrix = depth_frame_to_meters(frames.get_depth_frame());
+        m_work_matrix = frame_to_mat(frames.get_depth_frame());
 
         //cv::Mat color_mat(
         //        cv::Size(color_frame.get_width(), color_frame.get_height()),

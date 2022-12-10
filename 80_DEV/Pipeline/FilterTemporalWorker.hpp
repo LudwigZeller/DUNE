@@ -14,12 +14,12 @@ namespace Filter {
 class TemporalWorker : public Worker
 {
 protected:
-    cv::Mat m_temporal1,
-            m_temporal2,
-            m_temporal3;
+    #define num_buffer 8
+    std::vector<cv::Mat> buffer{num_buffer};
+    const double i_num_buffer = 1.0 / num_buffer;
 
 public:
-    TemporalWorker(std::string id): Worker{std::move(id)}
+    TemporalWorker(std::string id): Worker{std::move(id), MatIOType::CHAR_8, MatIOType::CHAR_8}
     {
         clog(info) << this->get_id() << " initialized!" << std::endl;
     }
@@ -27,21 +27,21 @@ public:
 protected:
     void start_up() override
     {
-        this->m_temporal1 = cv::Mat::zeros(cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_64F);
-        this->m_temporal2 = cv::Mat::zeros(cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_64F);
-        this->m_temporal3 = cv::Mat::zeros(cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_64F);
+        for(auto i = buffer.begin(); i != buffer.end(); i++)
+        {
+            *i = cv::Mat::zeros(cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_8U);
+        }
     }
 
     void work() override
     {
+        std::copy(buffer.begin() + 1, buffer.end(), buffer.begin());
+        buffer.back() = this->m_work_matrix.clone();
 
-        this->m_work_matrix += this->m_temporal1 + this->m_temporal2 + this->m_temporal3;
-        this->m_work_matrix /= 4.0;
-
-        this->m_temporal3.release();
-        this->m_temporal3 = std::move(this->m_temporal2);
-        this->m_temporal2 = std::move(this->m_temporal1);
-        this->m_temporal1 = this->m_work_matrix.clone();
+        for(auto i = buffer.begin(); i + 1 != buffer.end(); i++)
+            this->m_work_matrix += *i;
+        this->m_work_matrix *= i_num_buffer;
+        //cv::blur(this->m_work_matrix, buffer.back(), cv::Size{3,3});
     }
 };
 

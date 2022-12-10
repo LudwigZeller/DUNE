@@ -12,6 +12,7 @@
 #include <utility>
 #include <atomic>
 #include "../utils.hpp"
+#include "MatIO.hpp"
 
 class Worker {
 private:
@@ -33,7 +34,9 @@ protected:
     virtual void work() = 0;
     virtual void start_up() = 0;
 public:
-    explicit Worker(std::string id) : m_id(std::move(id)) {
+    const MatIOType::MatIOType_t m_input_type, m_output_type;
+
+    explicit Worker(std::string id, MatIOType::MatIOType_t input, MatIOType::MatIOType_t output) : m_id(std::move(id)), m_input_type(input), m_output_type(output) {
         clog(info) << "Constructed " << m_id << std::endl;
     };
 
