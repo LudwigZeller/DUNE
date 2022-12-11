@@ -62,6 +62,7 @@
 #include "Pipeline/FilterLineWorker.hpp"
 #include "Pipeline/FilterInterpolatorWorker.hpp"
 #include "Pipeline/FilterDiscreticiser.hpp"
+#include "Pipeline/FilterScaleWorker.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -87,11 +88,13 @@ int main(int argc, char **argv)
     Filter::LineWorker line_worker{"Filter_Line_Worker"};
     Filter::InterpolatorWorker interpolator_worker{"Filter_Interpolator_Worker"};
     Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
+    Filter::ScaleWorker scale_worker{"Filter_Scale_Worker"};
 
     Pipeline pipeline{&camera_provider};
 
     pipeline.push_worker(&discreticiser_worker);
     pipeline.push_worker(&temporal_worker1);
+    pipeline.push_worker(&scale_worker);
     pipeline.push_worker(&colorize_worker);
     pipeline.push_worker(&line_worker);
     pipeline.push_worker(&interpolator_worker);

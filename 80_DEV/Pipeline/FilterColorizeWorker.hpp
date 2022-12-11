@@ -26,7 +26,8 @@ public:
 
 private:
     const cv::Vec3b col_index[DISCRETE_STEPS] = {
-        black, white, red, yellow, green, blue, dark_blue, black
+        //black, white, red, yellow, green, blue, dark_blue, black
+        black, dark_blue, blue, green, yellow, red, white, black
     };
 
 public:

@@ -43,7 +43,7 @@ protected:
             #define min(a,b) (((a) < (b)) ? (a) : (b))
             #define max(a,b) (((a) < (b)) ? (b) : (a))
             double t = (tmp.at<short>(pos) - m_disc_start) * _scalc2;
-            c = (uchar) max(min(t + 1, this->m_lin_steps - 1), 0);
+            c = (DISCRETE_STEPS - 1) - (uchar) max(min(t + 1, this->m_lin_steps - 1), 0);
             //c = ~(~(1 << c) + 1);
         });
     }
