@@ -21,6 +21,10 @@ bool Pipeline::start() {
         for (Worker *worker: m_pipeline) worker->start();
         m_running = true;
     }
+
+    //!! Wait for camera
+    while(m_provider->pop().empty());
+
     m_thread = std::thread{[this] {
         clog(info) << "Pipeline running in " << std::this_thread::get_id() << std::endl;
         cv::Mat transfer;

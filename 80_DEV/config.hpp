@@ -48,5 +48,5 @@
 #define DEFAULT_DEVICE_NAME             ("HDMI-3")      //< Preferred displaying device
 #define STREAM_WIDTH                    (1280)          //< Camera provider's output size width
 #define STREAM_HEIGHT                   (720)           //< Camera provider's output size height
-#define DISCRETE_STEPS                  (8)
-
+#define DISCRETE_STEPS                  (16)
+#define LINE_MASK                       (0x40)

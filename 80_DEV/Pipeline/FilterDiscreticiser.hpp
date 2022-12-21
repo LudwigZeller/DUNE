@@ -16,7 +16,7 @@ class DiscreticiserWorker : public Worker
 protected:
     // Todo: These parameters 
     const short m_disc_start = 1000;
-    const short m_disc_end = 1240;
+    const short m_disc_end = 1225;
     const short m_lin_steps = DISCRETE_STEPS;
     cv::Mat tmp;
 
@@ -29,7 +29,9 @@ public:
 protected:
 
     void start_up() override
-    { /* No init required right now */ }
+    {
+        //std::this_thread::sleep_for(std::chrono::milliseconds(800));
+    }
 
     void work() override
     {
@@ -42,7 +44,7 @@ protected:
         this->m_work_matrix.forEach<uchar>([&](uchar &c, const int *pos){
             #define min(a,b) (((a) < (b)) ? (a) : (b))
             #define max(a,b) (((a) < (b)) ? (b) : (a))
-            double t = (tmp.at<short>(pos) - m_disc_start) * _scalc2;
+            double t = _scalc2 * (this->tmp.at<short>(pos)- m_disc_start);
             c = (DISCRETE_STEPS - 1) - (uchar) max(min(t + 1, this->m_lin_steps - 1), 0);
             //c = ~(~(1 << c) + 1);
         });

@@ -75,8 +75,8 @@ public:
                 }
                 {
                     std::lock_guard<std::mutex> lock(this->m_input.mutex);
-                    this->m_work_matrix = std::move(this->m_input.matrix);
                     this->m_input.is_new = false;
+                    this->m_work_matrix = std::move(this->m_input.matrix);
                 }
                 this->work();
                 if (this->m_output.is_new)

@@ -14,7 +14,7 @@ namespace Filter {
 class TemporalWorker : public Worker
 {
 protected:
-    #define num_buffer 8
+    #define num_buffer 12
     std::vector<cv::Mat> buffer{num_buffer};
     const double i_num_buffer = 1.0 / num_buffer;
 

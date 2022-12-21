@@ -46,6 +46,7 @@
 #include <librealsense2/rs.hpp>                     //<  Intel(R) RealSenseTM 3D-Camera SDK
 #include <opencv2/opencv.hpp>                       //!< OpenCV library 
 #include <opencv2/objdetect.hpp>
+#include <atomic>
 
 /*****        LOCAL INCLUDE         *****/
 #include "config.hpp"
@@ -62,7 +63,9 @@
 #include "Pipeline/FilterLineWorker.hpp"
 #include "Pipeline/FilterInterpolatorWorker.hpp"
 #include "Pipeline/FilterDiscreticiser.hpp"
-#include "Pipeline/FilterScaleWorker.hpp"
+//#include "Pipeline/FilterScaleWorker.hpp"
+#include "Pipeline/FunnyW.hpp"
+#include "Pipeline/checker.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -77,29 +80,37 @@
 
 int main(int argc, char **argv)
 {
+    std::srand((unsigned)std::time(nullptr));
     std::cout << "Starting DepthCamera, running in " << std::this_thread::get_id() << std::endl;
     CameraProvider camera_provider{"Camera_Provider"};
+    camera_provider.start();
     //Test_Provider camera_provider{"Test_Provider"};
 
-    Window window{"DUNE", FULLSCREEN, "DP-4"};
+    Window window{"DUNE", FULLSCREEN, "HDMI-3"};
     WindowWorker window_worker{"Window_Worker", &window};
     Filter::TemporalWorker temporal_worker1{"Filter_Temporal_Worker1"};
     Filter::ColorizeWorker colorize_worker{"Filter_Colorize_Worker"};
     Filter::LineWorker line_worker{"Filter_Line_Worker"};
     Filter::InterpolatorWorker interpolator_worker{"Filter_Interpolator_Worker"};
     Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
-    Filter::ScaleWorker scale_worker{"Filter_Scale_Worker"};
+    //Filter::ScaleWorker scale_worker{"Filter_Scale_Worker"};
+    Filter::FunnyWorker fw{"fw"};
+    Filter::checker ch{"ch"};
 
     Pipeline pipeline{&camera_provider};
 
     pipeline.push_worker(&discreticiser_worker);
     pipeline.push_worker(&temporal_worker1);
-    pipeline.push_worker(&scale_worker);
-    pipeline.push_worker(&colorize_worker);
+    pipeline.push_worker(&ch);
     pipeline.push_worker(&line_worker);
+    pipeline.push_worker(&colorize_worker);
     pipeline.push_worker(&interpolator_worker);
+    pipeline.push_worker(&fw);
     pipeline.push_worker(&window_worker);
     
+    //! Waiting here is required to supress 
+    std::this_thread::sleep_for(std::chrono::milliseconds(800));
+
     pipeline.start();
 
     while(window);
