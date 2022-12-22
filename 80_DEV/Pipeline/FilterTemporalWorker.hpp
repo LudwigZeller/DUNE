@@ -21,16 +21,16 @@ protected:
 public:
     TemporalWorker(std::string id): Worker{std::move(id), MatIOType::CHAR_8, MatIOType::CHAR_8}
     {
+        for(auto i = buffer.begin(); i != buffer.end(); i++)
+        {
+            *i = cv::Mat::zeros(cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_8U);
+        }
         clog(info) << this->get_id() << " initialized!" << std::endl;
     }
 
 protected:
     void start_up() override
     {
-        for(auto i = buffer.begin(); i != buffer.end(); i++)
-        {
-            *i = cv::Mat::zeros(cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_8U);
-        }
     }
 
     void work() override

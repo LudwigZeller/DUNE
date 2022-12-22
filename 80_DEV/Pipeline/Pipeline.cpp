@@ -17,7 +17,9 @@ bool Pipeline::start() {
     clog(info) << "Starting Pipeline!" << std::endl;
     {
         std::lock_guard<std::mutex> lock(m_pipeline_mutex);
-        m_provider->start();
+        if(m_provider->start())
+            //! Extra waiting here is required to supress error
+            std::this_thread::sleep_for(std::chrono::milliseconds(800));
         for (Worker *worker: m_pipeline) worker->start();
         m_running = true;
     }

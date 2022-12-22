@@ -8,7 +8,7 @@
 #include <fstream>
 
 
-Window::Window(const char *title, bool fullscreen, const char *device) {
+Window::Window(const char *title, bool fullscreen, bool do_beamer) {
     /******************* Initialization ********************/
     assert_log(glfwInit(), "GLFW initialization failed");
     clog(info) << "GLFW initialized!\n" << std::endl;
@@ -18,11 +18,17 @@ Window::Window(const char *title, bool fullscreen, const char *device) {
     GLFWmonitor **monitors = glfwGetMonitors(&count);
     clog(info) << "Connected monitors are: " << std::endl;
     GLFWmonitor *beamer = nullptr;
-    for (int i = 0; i < count; ++i) {
-        clog(info) << i << ": " << glfwGetMonitorName(monitors[i]) << std::endl;
-        if (strcmp(glfwGetMonitorName(monitors[i]), device != nullptr ? device : DEFAULT_DEVICE_NAME) == 0)
-            beamer = monitors[i];
-    }
+    if(do_beamer)
+        for (int i = 0; i < count; ++i) {
+            clog(info) << i << ": " << glfwGetMonitorName(monitors[i]) << std::endl;
+            int mwmm, mhmm;
+            glfwGetMonitorPhysicalSize(monitors[i], &mwmm, &mhmm);
+            if(mwmm == DEFAULT_DEVICE_PWIDTH && mhmm == DEFAULT_DEVICE_PHEIGHT)
+            {
+                beamer = monitors[i];
+                break;
+            }
+        }
     clog(info) << "----------\n" << std::endl;
     GLFWmonitor *monitor;
     if (beamer) {
@@ -122,6 +128,10 @@ void Window::onKeyCustom(GLFWwindow *window, int key, int scancode, int action, 
         if (!glfwWindowShouldClose(window))
             clog(info) << "Closed by Escape" << std::endl;
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+    else if(key == GLFW_KEY_W && action == GLFW_PRESS)
+    {
+        this->wpressed = true;
     }
 }
 

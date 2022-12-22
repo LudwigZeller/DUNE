@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Worker.hpp"
+#include "CalibRTE.hpp"
 
 double __sw_cord_factor = 1.0 / std::sqrt((double) (STREAM_WIDTH * STREAM_WIDTH) * 0.25 + (double) (STREAM_HEIGHT * STREAM_HEIGHT) * 0.25);
 double __sw_x_offset = -STREAM_WIDTH * 0.5;
@@ -41,7 +42,15 @@ protected:
 
     void work() override
     {
-        for(cv::Mat &m : m_mat_buf)
+        auto t = std::move(this->m_work_matrix);
+        this->m_work_matrix = cv::Mat::zeros(t.size(), CV_8U);
+        cv::Rect h{
+            //(STREAM_WIDTH - scalar_kernel.width) / 2, (STREAM_HEIGHT - scalar_kernel.height) / 2,
+            0, 0,
+            scalar_kernel.width, scalar_kernel.height
+        };
+        cv::resize(t, this->m_work_matrix(h), scalar_kernel);
+        /*for(cv::Mat &m : m_mat_buf)
         {
             m = cv::Mat::zeros(this->m_work_matrix.size(), CV_8U);
         }
@@ -68,7 +77,7 @@ protected:
             {
                 d += _t.at<uchar>(pos);
             });
-        }
+        }*/
         /*this->m_tmp.forEach<uchar>([&](uchar &orig_pixel, const int *pos){
             double raw_val = get_alt_at(pos, orig_pixel);
             //uchar raw_amp = 1.0 / raw_val;
