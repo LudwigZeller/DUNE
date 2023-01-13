@@ -4,7 +4,7 @@
 #include "CalibRTE.hpp"
 
 #define AMOUNT_CALIB_CTR_LOOPS 2
-#define TIME_CALIB_CTR 30
+#define TIME_CALIB_CTR 60
 #define TIME_CALIB_CTR_OFFS 30
 
 class CalibWorker : public Worker
@@ -146,8 +146,8 @@ protected:
             double kx = (double) (pts_i[0].x - pts_i[1].x) / (double) (pts_i[0].x - pts_i[1].x - difference_pt[0].x + difference_pt[1].x);
             double ky = (double) (pts_i[0].y - pts_i[1].y) / (double) (pts_i[0].y - pts_i[1].y - difference_pt[0].y + difference_pt[1].y);
 
-            kx = (kx + ky) * 0.5;
-            ky = kx;
+            //kx = (kx + ky) * 0.5;w
+            //ky = kx;
 
             scalar_kernel = {(int)(kx * STREAM_WIDTH), (int)(ky * STREAM_HEIGHT)};
             translation_vec = {

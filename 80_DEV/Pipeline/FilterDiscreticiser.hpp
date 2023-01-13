@@ -15,8 +15,8 @@ class DiscreticiserWorker : public Worker
 {
 protected:
     // Todo: These parameters 
-    const short m_disc_start = 1000;
-    const short m_disc_end = 1225;
+    const short m_disc_start = 1150;
+    const short m_disc_end = 1350;
     const short m_lin_steps = DISCRETE_STEPS;
     cv::Mat tmp;
 

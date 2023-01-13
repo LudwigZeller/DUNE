@@ -47,6 +47,8 @@
 #define VERSION                         ("V1.1 R6")     //< Version string literal
 #define DEFAULT_DEVICE_PWIDTH           (508)           //< Preferred displaying device
 #define DEFAULT_DEVICE_PHEIGHT          (285)           //< Preferred displaying device
+#define TOUCH_DEVICE_PWIDTH             (150)
+#define TOUCH_DEVICE_PHEIGHT            (100)
 #define STREAM_WIDTH                    (1280)          //< Camera provider's output size width
 #define STREAM_HEIGHT                   (720)           //< Camera provider's output size height
 #define DISCRETE_STEPS                  (16)

@@ -67,8 +67,10 @@
 #include "Pipeline/FilterScaleWorker.hpp"
 #include "Pipeline/FunnyW.hpp"
 #include "Pipeline/checker.hpp"
-#include "Pipeline/Calib.hpp"
+//#include "Pipeline/Calib.hpp"
 #include "Pipeline/Translator.hpp"
+#include "Pipeline/FilterDifferenceWorker.hpp"
+#include "TouchwndRes.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -76,8 +78,8 @@
 
 #include <regex>
 
-cv::Point2i translation_vec = {120,50};
-cv::Size scalar_kernel = {(int)(0.85 * STREAM_WIDTH), (int)(0.85 * STREAM_HEIGHT)};
+cv::Point2i translation_vec = {-16,12};
+cv::Size scalar_kernel = {(int)(STREAM_WIDTH), (int)(0.993 * STREAM_HEIGHT)};
 
 /**
  * @fn int main()
@@ -88,6 +90,7 @@ cv::Size scalar_kernel = {(int)(0.85 * STREAM_WIDTH), (int)(0.85 * STREAM_HEIGHT
 
 int main(int argc, char **argv)
 {
+    initMats();
     std::regex _mog{"-q([-0-9]+),([-0-9]+),([0-9.]+),([0-9.]+)"};
     std::smatch smat;
 
@@ -99,7 +102,9 @@ int main(int argc, char **argv)
             translation_vec.x = std::atoi(smat[1].str().c_str());
             translation_vec.y = std::atoi(smat[2].str().c_str());
             scalar_kernel.width = (int)(std::atof(smat[3].str().c_str()) * STREAM_WIDTH);
-            scalar_kernel.width = (int)(std::atof(smat[4].str().c_str()) * STREAM_HEIGHT);
+            scalar_kernel.height = (int)(std::atof(smat[4].str().c_str()) * STREAM_HEIGHT);
+
+            clog(warn) << "Value take-over: \ntv.x = " << translation_vec.x << "\ntv.y = " << translation_vec.y << "\nsk.w = " << scalar_kernel.width << "\nsk.h = " << scalar_kernel.height << std::endl;
         }
     }
 
@@ -109,7 +114,9 @@ int main(int argc, char **argv)
     CameraProvider camera_provider{"Camera_Provider"};
     //Test_Provider camera_provider{"Test_Provider"};
 
-    Window window{"DUNE", FULLSCREEN, true};
+    Window window{"DUNE", MONITOR_BEAMER_FIX};
+    Window twindow{"DUNE TOUCH", MONITOR_TOUCHDISPLAY_FIX};
+    //Window 
     WindowWorker window_worker{"Window_Worker", &window};
     Filter::TemporalWorker temporal_worker{"Filter_Temporal_Worker"};
     Filter::ColorizeWorker colorize_worker{"Filter_Colorize_Worker"};
@@ -119,12 +126,14 @@ int main(int argc, char **argv)
     Filter::ScaleWorker scale_worker{"Filter_Scale_Worker"};
     Filter::FunnyWorker fw{"fw"};
     Filter::checker ch{"ch"};
-    CalibWorker calib_worker{"Calib_Worker"};
+    Filter::DifferenceWorker difference_worker{"Filter_Difference_Worker"};
+    //CalibWorker calib_worker{"Calib_Worker"};
     TranslatorWorker translator_worker{"Translator_Worker", true};
 
     Pipeline pipeline{&camera_provider};
     Pipeline pipeline2{&camera_provider};
-    Pipeline pipelinec{&camera_provider};
+    Pipeline pipeline_difference{&camera_provider};
+    //Pipeline pipelinec{&camera_provider};
 
     pipeline.push_worker(&discreticiser_worker);
     pipeline.push_worker(&scale_worker);
@@ -145,43 +154,57 @@ int main(int argc, char **argv)
     pipeline2.push_worker(&interpolator_worker);
     pipeline2.push_worker(&window_worker);
 
-    pipelinec.push_worker(&discreticiser_worker);
-    pipelinec.push_worker(&temporal_worker);
-    //pipelinec.push_worker(&translator_worker);
-    pipelinec.push_worker(&calib_worker);
-    //pipelinec.push_worker(&colorize_worker);
-    pipelinec.push_worker(&window_worker);
+    pipeline_difference.push_worker(&discreticiser_worker);
+    pipeline_difference.push_worker(&scale_worker);
+    pipeline_difference.push_worker(&translator_worker);
+    pipeline_difference.push_worker(&temporal_worker);
+    pipeline_difference.push_worker(&difference_worker);
+    pipeline_difference.push_worker(&colorize_worker);
+    pipeline_difference.push_worker(&interpolator_worker);
+    pipeline_difference.push_worker(&window_worker);
 
-    //test(window);
-    
-    pipelinec.start();
+    pipeline.start();
 
-    int state = 0;
+    int state = twindow.get_dat();
+    twindow.render_matrix(getCaptureIndex(state));
 
-    while(window)
+    while(window && twindow)
     {
-        if(window.wpressed)
+        if(state != twindow.get_dat())
         {
-            window.wpressed = false;
-            if(state == 2)
+            twindow.cooldown = true;
+            state = twindow.get_dat();
+            if(state == 0)
             {
                 pipeline2.stop();
+                //pipeline_difference.stop();
                 pipeline.start();
-                state = 1;
-            }
-            else if(state == 0)
-            {
-                pipelinec.stop();
-                pipeline.start();
-                state = 1;
             }
             else if(state == 1)
             {
                 pipeline.stop();
                 pipeline2.start();
-                state = 2;
             }
+            else if(state == 2)
+            {
+                pipeline2.stop();
+                pipeline_difference.start();
+            }
+
+            difference_worker.reset_save();
+
+            twindow.cooldown = false;
+            twindow.render_matrix(getCaptureIndex(state));
+        }
+        if(twindow.docapture)
+        {
+            twindow.docapture = false;
+            cv::Mat mat = window.capture();
+            saveMatAsFile(mat, "CAPTURE", "./capture.dres");
         }
     }
-}
 
+    window.close();
+    twindow.close();
+    while(window || twindow);
+}

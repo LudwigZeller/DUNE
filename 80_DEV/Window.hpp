@@ -12,10 +12,16 @@
 #include <opencv2/core/mat.hpp>
 #include <mutex>
 
+#define NO_MONITOR_FIX 0
+#define MONITOR_BEAMER_FIX 1
+#define MONITOR_TOUCHDISPLAY_FIX 2
+
 class Window {
 public:
     bool wpressed = false;
-    explicit Window(const char *title, bool fullscreen = false, bool do_beamer = true);
+    bool docapture = false;
+    bool cooldown = false;
+    explicit Window(const char *title, const int _type = 0);
 
     ~Window();
 
@@ -31,11 +37,26 @@ public:
     }
 
     void onKeyCustom(GLFWwindow *window, int key, int scancode, int action, int mods);
+    void onPressCuston(GLFWwindow *window, int button, int action, int mods);
 
     void render_matrix(cv::Mat &&matrix);
 
     inline int real_width() {int w; glfwGetWindowSize(_window, &w, NULL); return w;}
     inline int real_height() {int h; glfwGetWindowSize(_window, NULL, &h); return h;}
+    inline void set_type(const int type) {this->m_type = type;}
+    inline int get_dat() const {return this->m_data;}
+    inline void set_dat(const int dat) {this->m_data = dat;}
+
+    inline cv::Mat capture()
+    {
+        cv::Mat rt = cv::Mat(cv::Size{160,90}, CV_8UC3);
+        this->m_matrix(cv::Rect{
+            STREAM_WIDTH / 2 - 80,
+            STREAM_HEIGHT / 2 - 45,
+            160,90
+        }).copyTo(rt);
+        return rt;
+    }
 
 
 private:
@@ -45,11 +66,19 @@ private:
     std::mutex m_draw_mutex;
     cv::Mat m_matrix;
     inline static int _window_count = 0;
+    int m_type = 0;
+    int m_data = 0;
 
     inline static void onKey(GLFWwindow *window, int key, int scancode, int action, int mods)
     {
         Window *wnd = (Window*)glfwGetWindowUserPointer(window);
         wnd->onKeyCustom(window, key, scancode, action, mods);
+    }
+
+    inline static void onPress(GLFWwindow *window, int button, int action, int mods)
+    {
+        Window *wnd = (Window*)glfwGetWindowUserPointer(window);
+        wnd->onPressCuston(window, button, action, mods);
     }
 };
 
