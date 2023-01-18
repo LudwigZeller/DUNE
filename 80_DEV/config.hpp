@@ -45,8 +45,11 @@
 #define CALIBRATION_LOOP_THRESHOLD      (10)            //< Number of frames allowed to elapse until calibration cycle
 #define DEBUG_ON_SCREEN                 (true)          //< Do display debug information onscreen
 #define VERSION                         ("V1.1 R6")     //< Version string literal
-#define DEFAULT_DEVICE_NAME             ("HDMI-3")      //< Preferred displaying device
+#define DEFAULT_DEVICE_PWIDTH           (508)           //< Preferred displaying device
+#define DEFAULT_DEVICE_PHEIGHT          (285)           //< Preferred displaying device
+#define TOUCH_DEVICE_PWIDTH             (150)
+#define TOUCH_DEVICE_PHEIGHT            (100)
 #define STREAM_WIDTH                    (1280)          //< Camera provider's output size width
 #define STREAM_HEIGHT                   (720)           //< Camera provider's output size height
-#define DISCRETE_STEPS                  (8)
-
+#define DISCRETE_STEPS                  (16)
+#define LINE_MASK                       (0x40)

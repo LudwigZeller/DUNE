@@ -12,7 +12,8 @@ set(PROJECT_FILES
         main.cpp
         utils.cpp
         Window.cpp
-        Pipeline/Pipeline.cpp)
+        Pipeline/Pipeline.cpp
+        TouchwndRes.cpp)
 ##################################################################
 
 set(OpenGL_GL_PREFERENCE LEGACY)

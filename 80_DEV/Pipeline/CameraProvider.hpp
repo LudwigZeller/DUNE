@@ -7,6 +7,9 @@
 #include <thread>
 #include <utility>
 #include "MatIO.hpp"
+#include "CalibRTE.hpp"
+
+cv::Mat color_mat;
 
 class CameraProvider : public Provider {
     rs2::pipeline m_pipe{};
@@ -55,6 +58,7 @@ public:
         
         /**** DEPTH FRAME ****/
         m_work_matrix = frame_to_mat(frames.get_depth_frame());
+        color_mat = frame_to_mat(frames.get_color_frame());
 
         //cv::Mat color_mat(
         //        cv::Size(color_frame.get_width(), color_frame.get_height()),
