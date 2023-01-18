@@ -67,10 +67,12 @@
 #include "Pipeline/FilterScaleWorker.hpp"
 #include "Pipeline/FunnyW.hpp"
 #include "Pipeline/checker.hpp"
-//#include "Pipeline/Calib.hpp"
+#include "Pipeline/Calib.hpp"
 #include "Pipeline/Translator.hpp"
 #include "Pipeline/FilterDifferenceWorker.hpp"
 #include "TouchwndRes.hpp"
+#include "Pipeline/FilterStripeWorker.hpp"
+#include "Pipeline/VisualCutWorker.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -78,8 +80,9 @@
 
 #include <regex>
 
-cv::Point2i translation_vec = {-16,12};
+cv::Point2i translation_vec = {-16,17};
 cv::Size scalar_kernel = {(int)(STREAM_WIDTH), (int)(0.993 * STREAM_HEIGHT)};
+volatile bool stay_in_calib = true;
 
 /**
  * @fn int main()
@@ -119,7 +122,8 @@ int main(int argc, char **argv)
     //Window 
     WindowWorker window_worker{"Window_Worker", &window};
     Filter::TemporalWorker temporal_worker{"Filter_Temporal_Worker"};
-    Filter::ColorizeWorker colorize_worker{"Filter_Colorize_Worker"};
+    Filter::ColorizeWorker colorize_worker{"Filter_Colorize_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::DEFAULT};
+    Filter::ColorizeWorker rgbg_colorize_worker{"Filter_Colorize_RGBG_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::RGBG};
     Filter::LineWorker line_worker{"Filter_Line_Worker"};
     Filter::InterpolatorWorker interpolator_worker{"Filter_Interpolator_Worker"};
     Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
@@ -127,32 +131,35 @@ int main(int argc, char **argv)
     Filter::FunnyWorker fw{"fw"};
     Filter::checker ch{"ch"};
     Filter::DifferenceWorker difference_worker{"Filter_Difference_Worker"};
-    //CalibWorker calib_worker{"Calib_Worker"};
+    Filter::StripeWorker stripe_worker{"Filter_Stripe_Worker"};
+    CalibWorker calib_worker{"Calib_Worker"};
     TranslatorWorker translator_worker{"Translator_Worker", true};
+    Filter::VisualCutWorker visual_cut_worker{"Visual_Cut_Worker"};
 
-    Pipeline pipeline{&camera_provider};
-    Pipeline pipeline2{&camera_provider};
+    Pipeline pipeline_minecraft{&camera_provider};
+    Pipeline pipeline_smooth{&camera_provider};
     Pipeline pipeline_difference{&camera_provider};
-    //Pipeline pipelinec{&camera_provider};
+    Pipeline pipeline_stripe{&camera_provider};
+    Pipeline pipeline_calibration{&camera_provider};
 
-    pipeline.push_worker(&discreticiser_worker);
-    pipeline.push_worker(&scale_worker);
-    pipeline.push_worker(&translator_worker);
-    pipeline.push_worker(&temporal_worker);
-    pipeline.push_worker(&ch);
-    pipeline.push_worker(&line_worker);
-    pipeline.push_worker(&colorize_worker);
-    //pipeline.push_worker(&interpolator_worker);
-    pipeline.push_worker(&fw);
-    pipeline.push_worker(&window_worker);
+    pipeline_minecraft.push_worker(&discreticiser_worker);
+    pipeline_minecraft.push_worker(&scale_worker);
+    pipeline_minecraft.push_worker(&translator_worker);
+    pipeline_minecraft.push_worker(&visual_cut_worker);
+    pipeline_minecraft.push_worker(&temporal_worker);
+    pipeline_minecraft.push_worker(&ch);
+    pipeline_minecraft.push_worker(&line_worker);
+    pipeline_minecraft.push_worker(&colorize_worker);
+    pipeline_minecraft.push_worker(&fw);
+    pipeline_minecraft.push_worker(&window_worker);
 
-    pipeline2.push_worker(&discreticiser_worker);
-    pipeline2.push_worker(&scale_worker);
-    pipeline2.push_worker(&translator_worker);
-    pipeline2.push_worker(&temporal_worker);
-    pipeline2.push_worker(&colorize_worker);
-    pipeline2.push_worker(&interpolator_worker);
-    pipeline2.push_worker(&window_worker);
+    pipeline_smooth.push_worker(&discreticiser_worker);
+    pipeline_smooth.push_worker(&scale_worker);
+    pipeline_smooth.push_worker(&translator_worker);
+    pipeline_smooth.push_worker(&temporal_worker);
+    pipeline_smooth.push_worker(&rgbg_colorize_worker);
+    pipeline_smooth.push_worker(&interpolator_worker);
+    pipeline_smooth.push_worker(&window_worker);
 
     pipeline_difference.push_worker(&discreticiser_worker);
     pipeline_difference.push_worker(&scale_worker);
@@ -163,7 +170,27 @@ int main(int argc, char **argv)
     pipeline_difference.push_worker(&interpolator_worker);
     pipeline_difference.push_worker(&window_worker);
 
-    pipeline.start();
+    pipeline_stripe.push_worker(&discreticiser_worker);
+    pipeline_stripe.push_worker(&scale_worker);
+    pipeline_stripe.push_worker(&translator_worker);
+    pipeline_stripe.push_worker(&temporal_worker);
+    pipeline_stripe.push_worker(&stripe_worker);
+    pipeline_stripe.push_worker(&colorize_worker);
+    pipeline_stripe.push_worker(&interpolator_worker);
+    pipeline_stripe.push_worker(&window_worker);
+
+    pipeline_calibration.push_worker(&discreticiser_worker);
+    pipeline_calibration.push_worker(&calib_worker);
+    pipeline_calibration.push_worker(&window_worker);
+
+#define __DO_CALIB
+#ifdef __DO_CALIB
+    pipeline_calibration.start();
+    while(stay_in_calib && window && twindow);
+    pipeline_calibration.stop();
+#endif
+
+    pipeline_minecraft.start();
 
     int state = twindow.get_dat();
     twindow.render_matrix(getCaptureIndex(state));
@@ -174,27 +201,33 @@ int main(int argc, char **argv)
         {
             twindow.cooldown = true;
             state = twindow.get_dat();
+            twindow.render_matrix(getCaptureIndex(state));
+            twindow.operator bool();
+
+            pipeline_minecraft.stop();
+            pipeline_smooth.stop();
+            pipeline_difference.stop();
+            pipeline_stripe.stop();
+
             if(state == 0)
             {
-                pipeline2.stop();
-                //pipeline_difference.stop();
-                pipeline.start();
+                pipeline_minecraft.start();
             }
             else if(state == 1)
             {
-                pipeline.stop();
-                pipeline2.start();
+                pipeline_smooth.start();
             }
             else if(state == 2)
             {
-                pipeline2.stop();
                 pipeline_difference.start();
+            }
+            else if(state == 3)
+            {
+                pipeline_stripe.start();
             }
 
             difference_worker.reset_save();
-
             twindow.cooldown = false;
-            twindow.render_matrix(getCaptureIndex(state));
         }
         if(twindow.docapture)
         {

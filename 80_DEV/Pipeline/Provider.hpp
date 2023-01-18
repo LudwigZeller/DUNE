@@ -53,9 +53,10 @@ public:
         m_thread = std::thread{[this] {
             while (this->m_running) {
                 this->work();
-                if (this->m_output.is_new)
-                    clog(warn) << this->get_id() << ": Output Matrix was not picked up! - Error in Pipeline?"
-                               << std::endl;
+                //! This will now be ignored because of launch stability
+                //if (this->m_output.is_new)
+                    //clog(warn) << this->get_id() << ": Output Matrix was not picked up! - Error in Pipeline?"
+                    //           << std::endl;
                 {
                     std::lock_guard<std::mutex> lock(this->m_output.mutex);
                     this->m_output.matrix = std::move(this->m_work_matrix);

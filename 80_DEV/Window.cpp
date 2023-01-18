@@ -204,7 +204,28 @@ void Window::onPressCuston(GLFWwindow *window, int button, int action, int mods)
 {
     if(button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS && !this->cooldown)
     {
-        this->m_data++;
-        this->m_data %= 2;
+        double posx, posy;
+        glfwGetCursorPos(window, &posx, &posy);
+        this->swipe_pt = {(int)posx, (int)posy};
+    }
+    else if(button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE && !this->cooldown)
+    {
+        double posx, posy;
+        glfwGetCursorPos(window, &posx, &posy);
+        posx -= swipe_pt.x;
+
+        if(posx < -10)
+        {
+            this->m_data--;
+            if(this->m_data < 0)
+            {
+                this->m_data = 3;
+            }
+        }
+        else if(posx > 10)
+        {
+            this->m_data++;
+            this->m_data %= 4;
+        }
     }
 }

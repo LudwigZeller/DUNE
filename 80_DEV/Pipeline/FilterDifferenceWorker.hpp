@@ -46,6 +46,7 @@ protected:
         {
         #define __abs(a) (((a) > 0) ? (a) : -(a))
             pixel = __abs((signed char) pixel - (signed char) this->m_reference.at<uchar>(pos));
+            pixel = pixel > 1 ? pixel - 1 : 0;
         });
     }
 

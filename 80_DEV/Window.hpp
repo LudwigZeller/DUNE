@@ -68,6 +68,7 @@ private:
     inline static int _window_count = 0;
     int m_type = 0;
     int m_data = 0;
+    cv::Point2i swipe_pt;
 
     inline static void onKey(GLFWwindow *window, int key, int scancode, int action, int mods)
     {

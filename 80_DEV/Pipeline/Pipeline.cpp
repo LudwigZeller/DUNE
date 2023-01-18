@@ -7,6 +7,7 @@ Pipeline::Pipeline(Provider *provider) {
 
 Pipeline::~Pipeline() {
     this->stop();
+    this->m_provider->stop();
     //! Are declared as stack variables!!!
     /*delete m_provider;
     for (Worker *worker: m_pipeline) delete worker;*/
@@ -48,7 +49,7 @@ bool Pipeline::stop() {
     clog(info) << "Stopping Pipeline!" << std::endl;
     {
         std::lock_guard<std::mutex> lock(m_pipeline_mutex);
-        m_provider->stop();
+        //m_provider->stop();
         for (Worker *worker: m_pipeline) worker->stop();
         m_running = false;
     }

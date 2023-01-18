@@ -6,7 +6,7 @@ cmake-build*
 !90_BUILD/.ignorethis
 *.dres
 !assets.dres
-!staticassets/*
+!*_prev.dres
 
 # Prerequisites
 *.d
