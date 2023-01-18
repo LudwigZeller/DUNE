@@ -349,6 +349,31 @@ inline void saveMatDepth(const cv::Mat &cln, const std::string name, const std::
 void capture(const cv::Mat &cln);
 void captureDepth(const cv::Mat &cln);
 
+inline void meta_translate(cv::Mat &m, cv::Point2i translate)
+{
+    bool tx_sm_0 = 0 > translate.x;
+    bool ty_sm_0 = 0 > translate.y;
+
+    int x_area_cp = STREAM_WIDTH + (tx_sm_0 ? translate.x : (-translate.x));
+    int y_area_cp = STREAM_HEIGHT + (ty_sm_0 ? translate.y : (-translate.y));
+
+    cv::Rect src{
+        !tx_sm_0 ? 0 : -translate.x,
+        !ty_sm_0 ? 0 : -translate.y,
+        x_area_cp, y_area_cp
+    };
+
+    cv::Rect dst{
+        !tx_sm_0 ? translate.x : 0,
+        !ty_sm_0 ? translate.y : 0,
+        x_area_cp, y_area_cp
+    };
+
+    cv::Mat tmp = std::move(m);
+    m = cv::Mat::zeros(tmp.size(), CV_8U);
+    cv::copyTo(tmp(src), m(dst), cv::Mat());
+}
+
 inline bool file_exists(const std::string path)
 {
     std::ifstream f(path);
