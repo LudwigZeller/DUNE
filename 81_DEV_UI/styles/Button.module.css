@@ -2,6 +2,7 @@
 .button {
     --shadow: 6px;
 
+    margin: 2rem;
     height: calc(360px + 50px);
     width: calc(640px + 50px);
     display: flex;
@@ -43,5 +44,5 @@
 
 .subtext {
     font-size: 1.5rem;
-    margin-top: 3rem;
+    padding: 3rem;
 }

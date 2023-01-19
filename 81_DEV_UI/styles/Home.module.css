@@ -1,7 +1,9 @@
 .main {
-    overflow: scroll;
+    overflow-y: scroll;
     height: 100vh;
+    margin: 0 2rem;
     display: flex;
     justify-content: center;
     align-items: center;
+    width: fit-content;
 }
