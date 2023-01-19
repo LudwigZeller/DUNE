@@ -1,0 +1,48 @@
+
+.button {
+    --shadow: 6px;
+
+    margin: 2rem;
+    height: calc(360px + 50px);
+    width: calc(640px + 50px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 25px;
+    border: solid 3px black;
+    background-color: lightskyblue;
+    box-shadow: var(--shadow) var(--shadow) black;
+
+    transition: background-color ease 0.5s, transform ease 0.5s, box-shadow ease 0.5s;
+
+}
+
+.active {
+    background-color: deepskyblue;
+    box-shadow: 0 0 black;
+    transform: translate(var(--shadow), var(--shadow));
+}
+
+
+.image {
+    border-radius: 25px;
+    position: absolute;
+    z-index: 0;
+}
+
+.textbox {
+    color: white;
+    z-index: 1;
+    text-shadow: 4px 4px 4px black;
+}
+
+.text {
+    margin-top: 8rem;
+    font-size: 3rem;
+}
+
+.subtext {
+    font-size: 1.5rem;
+    padding: 3rem;
+}
