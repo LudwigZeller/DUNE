@@ -53,12 +53,12 @@
 #include "utils.hpp"
 #include "Window.hpp"
 #include "Calibration.hpp"
+#include "Window.hpp"
 
 // Worker
 #include "Pipeline/Pipeline.hpp"
 #include "Pipeline/WindowWorker.hpp"
 #include "Pipeline/CameraProvider.hpp"
-//#include "Pipeline/Test_Provider.hpp"
 #include "Pipeline/FilterColorizeWorker.hpp"
 #include "Pipeline/FilterTemporalWorker.hpp"
 #include "Pipeline/FilterLineWorker.hpp"
@@ -77,7 +77,6 @@
 /*****           MISC               *****/
 #include <iostream>
 #include <chrono>
-
 #include <regex>
 
 cv::Point2i translation_vec = {-16,17};
@@ -183,8 +182,8 @@ int main(int argc, char **argv)
     pipeline_calibration.push_worker(&calib_worker);
     pipeline_calibration.push_worker(&window_worker);
 
-#define __DO_CALIB
-#ifdef __DO_CALIB
+
+#if DO_CALIB
     pipeline_calibration.start();
     while(stay_in_calib && window && twindow);
     pipeline_calibration.stop();
@@ -192,6 +191,47 @@ int main(int argc, char **argv)
 
     pipeline_minecraft.start();
 
+#if WEB_UI
+    Pipeline &current_pipeline = pipeline_minecraft;
+
+    Webserver webserver{};
+    webserver.create();
+    webserver.listen(8080);
+
+    auto data = webserver.get_data();
+    while(window) {
+        auto new_data = webserver.get_data();
+        if (new_data.filter == data.filter) continue;
+        switch (data.filter) {
+            clog(info) << "Received new HTTP Data - Initiating Pipeline Switch!" << std::endl;
+            current_pipeline.stop();
+            clog(info) << "Switching to -> ";
+            switch (data.filter) {
+                case Data::Filter::NORMAL:
+                    clog(info) << "SMOOTH FILTER PIPELINE" << std::endl;
+                    pipeline_smooth.start();
+                    current_pipeline = pipeline_smooth;
+                    break;
+                case Data::Filter::BLOCKCRAFT:
+                    clog(info) << "BLOCKCRAFT FILTER PIPELINE" << std::endl;
+                    pipeline_minecraft.start();
+                    current_pipeline = pipeline_minecraft;
+                    break;
+                case Data::Filter::DIFFERENCE:
+                    clog(info) << "DIFFERENCE FILTER PIPELINE" << std::endl;
+                    pipeline_difference.start();
+                    current_pipeline = pipeline_difference;
+                    break;
+                case Data::Filter::STRIPE:
+                    clog(info) << "STRIPE FILTER PIPELINE" << std::endl;
+                    pipeline_stripe.start();
+                    current_pipeline = pipeline_stripe;
+                    break;
+            }
+        }
+    }
+
+#else
     int state = twindow.get_dat();
     twindow.render_matrix(getCaptureIndex(state));
 
@@ -240,4 +280,5 @@ int main(int argc, char **argv)
     window.close();
     twindow.close();
     while(window || twindow);
+#endif
 }

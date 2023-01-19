@@ -41,9 +41,6 @@
 #define FPS                             (15.0f)         //< Frames per second constant, used by pipeline
 #define CPS                             (15u)           //< Captures per second constant, used by rs Grabber
 #define FULLSCREEN                      (true)          //< Fullscreen constant for window
-#define CYCLE_COUNTER_AVERAGE           (10)            //< Number of ms/frame to be logged
-#define CALIBRATION_LOOP_THRESHOLD      (10)            //< Number of frames allowed to elapse until calibration cycle
-#define DEBUG_ON_SCREEN                 (true)          //< Do display debug information onscreen
 #define VERSION                         ("V1.1 R6")     //< Version string literal
 #define DEFAULT_DEVICE_PWIDTH           (508)           //< Preferred displaying device
 #define DEFAULT_DEVICE_PHEIGHT          (285)           //< Preferred displaying device
@@ -53,3 +50,5 @@
 #define STREAM_HEIGHT                   (720)           //< Camera provider's output size height
 #define DISCRETE_STEPS                  (16)
 #define LINE_MASK                       (0x40)
+#define WEB_UI                          (true)
+#define DO_CALIB                        (true)
