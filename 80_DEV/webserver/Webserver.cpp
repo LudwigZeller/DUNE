@@ -5,10 +5,13 @@
 
 
 Webserver::~Webserver() {
-
+    this->m_running = false;
     int res = shutdown(m_socket_fd, SHUT_RDWR);
     if (res == -1)
         std::cerr << "Unable to close Socket: " << errno << std::endl;
+    
+    this->m_thread->join();
+    delete this->m_thread;
 }
 
 void Webserver::create() {
@@ -37,8 +40,10 @@ void Webserver::listen(uint16_t port) {
     if (res == -1)
         throw WebserverException("Unable to listen on Port", errno);
 
+    this->m_running = true;
+
     auto serve = [address, this]() {
-        while (true) {
+        while (this->m_running) {
             // ------------------ AWAIT REQUEST ------------------
             int addrlen = sizeof(address);
             int open_socket = accept(m_socket_fd, (struct sockaddr *) &address, (socklen_t *) &addrlen);

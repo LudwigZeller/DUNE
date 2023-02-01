@@ -38,7 +38,7 @@ export default function Home() {
                         src={"/button_test.png"}/>
                 <Button active={activeFilter == FILTER.STRIPE} onClick={() => onClick(FILTER.STRIPE)}
                         text={"Stripe"}
-                        subtext={"Der Smooth Filter, aber mit ducking stripes boiiiii"}
+                        subtext={"Der Smooth Filter, aber mit richtungswechselnden Streifen"}
                         src={"/button_test.png"}/>
                 <Button active={activeFilter == FILTER.DIFFERENCE} onClick={() => onClick(FILTER.DIFFERENCE)}
                         text={"Difference"}

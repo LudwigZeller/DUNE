@@ -51,4 +51,4 @@
 #define DISCRETE_STEPS                  (16)
 #define LINE_MASK                       (0x40)
 #define WEB_UI                          (true)
-#define DO_CALIB                        (true)
+#define DO_CALIB                        (false)

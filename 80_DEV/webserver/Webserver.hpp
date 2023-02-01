@@ -46,6 +46,7 @@ private:
     int m_socket_fd = 0;
     std::thread *m_thread = nullptr;
     std::atomic<Data::AtmoicData> m_data;
+    bool m_running = false;
 
     // --------- Responses ---------
     static std::string res_get();

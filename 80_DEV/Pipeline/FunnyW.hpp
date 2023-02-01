@@ -2,41 +2,44 @@
 
 #include "Worker.hpp"
 
-#include "../assets/Tree.dres"
+#include "../assets.dres"
 #include "AssetRTE.hpp"
 
 const cv::Vec3b bl{0,0,0};
 
-std::vector<aRTE_point_bool> aRTE_fwmkernel{};
-
 /**
  * @brief Project's Filter namespace
 */
-namespace Filter {
+__ARTE_INIT_ namespace Filter {
 
 /**
  * @class ColorizeWorker : public Worker
  * @brief Temporary matrix colorization worker
 */
-class FunnyWorker : public Worker
+class ResourcePlacementWorker : public Worker
 {
 private:
     cv::Mat tree;
+    Asset_Type asset_type;
+
 public:
-    FunnyWorker(std::string _id): Worker(std::move(_id), MatIOType::VEC_3_CHAR_8, MatIOType::VEC_3_CHAR_8)
+    ResourcePlacementWorker(std::string _id, const Asset_Type _asset_type, const int width, const int height, const char *data): Worker(std::move(_id), MatIOType::VEC_3_CHAR_8, MatIOType::VEC_3_CHAR_8),
+        asset_type(_asset_type)
     {
-        clog(info) << "sussy baka" << std::endl;
-        tree = assetToMat(tree_asmak_WIDTH, tree_asmak_HEIGHT, tree_asmak_DATA);
-        for(int i = 0; i < D_aRTE_fwmkernelsize; i++)
+        clog(info) << this->get_id() << " initialized!" << std::endl;
+        tree = assetToMat(width, height, data);
+
+        for(int i = 0; i < get_kernel(_asset_type).size(); i++)
         {
-            int x = (std::rand() % (STREAM_WIDTH - 2*tree_asmak_WIDTH)) + tree_asmak_WIDTH;
-            int y = (std::rand() % (STREAM_HEIGHT - 2*tree_asmak_HEIGHT)) + tree_asmak_HEIGHT;
-            aRTE_fwmkernel.push_back(aRTE_point_bool{.r = cv::Rect{
+            int x = (std::rand() % (STREAM_WIDTH - 2*width)) + width;
+            int y = (std::rand() % (STREAM_HEIGHT - 2*height)) + height;
+        clog(err) << get_kernel(_asset_type).size() << std::endl;
+            get_kernel(_asset_type)[i] = aRTE_point_bool{.r = cv::Rect{
                 x, y,
-                tree_asmak_WIDTH, tree_asmak_HEIGHT
+                width, height
             },
-            .p = cv::Point{x + tree_asmak_WIDTH / 2, y + tree_asmak_HEIGHT / 2},
-            .b = std::atomic_bool{false}});
+            .p = cv::Point{x + (signed) width / 2, y + (signed) height / 2},
+            .b = std::atomic_bool{false}};
         }
 
     }
@@ -47,7 +50,7 @@ protected:
 
     void work() override
     {
-        for(aRTE_point_bool &r : aRTE_fwmkernel)
+        for(aRTE_point_bool &r : get_kernel(asset_type))
         {
             if(r.b)
                 this->m_work_matrix(r.r).forEach<cv::Vec3b>([&](cv::Vec3b &p, const int *pos){

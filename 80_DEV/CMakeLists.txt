@@ -13,7 +13,6 @@ set(PROJECT_FILES
         utils.cpp
         Window.cpp
         Pipeline/Pipeline.cpp
-        TouchwndRes.cpp
         webserver/Webserver.cpp)
 ##################################################################
 

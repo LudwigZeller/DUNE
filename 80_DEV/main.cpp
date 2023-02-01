@@ -35,16 +35,15 @@
 |                                        |
 \****************************************/
 
-
 /****************************************\
 |               INCLUDES                 |
 \****************************************/
 
 /*****    DYNAMIC LIBRARY INCLUDE   *****/
-#include <glad/glad.h>                              //<  OpenGL function loader; Important: Before GLFW
-#include <GLFW/glfw3.h>                             //<  OpenGL library for window and input
-#include <librealsense2/rs.hpp>                     //<  Intel(R) RealSenseTM 3D-Camera SDK
-#include <opencv2/opencv.hpp>                       //!< OpenCV library 
+#include <glad/glad.h>          //<  OpenGL function loader; Important: Before GLFW
+#include <GLFW/glfw3.h>         //<  OpenGL library for window and input
+#include <librealsense2/rs.hpp> //<  Intel(R) RealSenseTM 3D-Camera SDK
+#include <opencv2/opencv.hpp>   //!< OpenCV library
 #include <opencv2/objdetect.hpp>
 #include <atomic>
 
@@ -53,7 +52,7 @@
 #include "utils.hpp"
 #include "Window.hpp"
 #include "Calibration.hpp"
-#include "Window.hpp"
+#include "webserver/Webserver.hpp"
 
 // Worker
 #include "Pipeline/Pipeline.hpp"
@@ -66,11 +65,10 @@
 #include "Pipeline/FilterDiscreticiser.hpp"
 #include "Pipeline/FilterScaleWorker.hpp"
 #include "Pipeline/FunnyW.hpp"
-#include "Pipeline/checker.hpp"
+#include "Pipeline/FilterAssetOverlayWorker.hpp"
 #include "Pipeline/Calib.hpp"
 #include "Pipeline/Translator.hpp"
 #include "Pipeline/FilterDifferenceWorker.hpp"
-#include "TouchwndRes.hpp"
 #include "Pipeline/FilterStripeWorker.hpp"
 #include "Pipeline/VisualCutWorker.hpp"
 
@@ -79,7 +77,7 @@
 #include <chrono>
 #include <regex>
 
-cv::Point2i translation_vec = {-16,17};
+cv::Point2i translation_vec = {-3, -2};
 cv::Size scalar_kernel = {(int)(STREAM_WIDTH), (int)(0.993 * STREAM_HEIGHT)};
 volatile bool stay_in_calib = true;
 
@@ -92,14 +90,13 @@ volatile bool stay_in_calib = true;
 
 int main(int argc, char **argv)
 {
-    initMats();
     std::regex _mog{"-q([-0-9]+),([-0-9]+),([0-9.]+),([0-9.]+)"};
     std::smatch smat;
 
-    for(int i = 1; i < argc; i++)
+    for (int i = 1; i < argc; i++)
     {
         std::string l{argv[i]};
-        if(std::regex_search(l, smat, _mog))
+        if (std::regex_search(l, smat, _mog))
         {
             translation_vec.x = std::atoi(smat[1].str().c_str());
             translation_vec.y = std::atoi(smat[2].str().c_str());
@@ -110,25 +107,27 @@ int main(int argc, char **argv)
         }
     }
 
-
     std::srand((unsigned)std::time(nullptr));
     std::cout << "Starting DepthCamera, running in " << std::this_thread::get_id() << std::endl;
     CameraProvider camera_provider{"Camera_Provider"};
-    //Test_Provider camera_provider{"Test_Provider"};
+    // Test_Provider camera_provider{"Test_Provider"};
 
     Window window{"DUNE", MONITOR_BEAMER_FIX};
-    Window twindow{"DUNE TOUCH", MONITOR_TOUCHDISPLAY_FIX};
-    //Window 
+#if WEB_UI
+#else
+    Window twindow{"DUNE Touch", MONITOR_TOUCHDISPLAY_FIX};
+#endif
+    // Window
     WindowWorker window_worker{"Window_Worker", &window};
     Filter::TemporalWorker temporal_worker{"Filter_Temporal_Worker"};
     Filter::ColorizeWorker colorize_worker{"Filter_Colorize_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::DEFAULT};
-    Filter::ColorizeWorker rgbg_colorize_worker{"Filter_Colorize_RGBG_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::RGBG};
+    Filter::ColorizeWorker rgbg_colorize_worker{"Filter_Colorize_RGBG_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::BEACH};
     Filter::LineWorker line_worker{"Filter_Line_Worker"};
     Filter::InterpolatorWorker interpolator_worker{"Filter_Interpolator_Worker"};
     Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
     Filter::ScaleWorker scale_worker{"Filter_Scale_Worker"};
-    Filter::FunnyWorker fw{"fw"};
-    Filter::checker ch{"ch"};
+    Filter::ResourcePlacementWorker resource_placement{"Resource_Placement_Worker", BC_Trees, tree_asmak_WIDTH, tree_asmak_HEIGHT, tree_asmak_DATA};
+    Filter::AssetOverlayWorker asset_overlay{"Asset_Overlay_Filter", BC_Trees};
     Filter::DifferenceWorker difference_worker{"Filter_Difference_Worker"};
     Filter::StripeWorker stripe_worker{"Filter_Stripe_Worker"};
     CalibWorker calib_worker{"Calib_Worker"};
@@ -146,23 +145,25 @@ int main(int argc, char **argv)
     pipeline_minecraft.push_worker(&translator_worker);
     pipeline_minecraft.push_worker(&visual_cut_worker);
     pipeline_minecraft.push_worker(&temporal_worker);
-    pipeline_minecraft.push_worker(&ch);
+    pipeline_minecraft.push_worker(&asset_overlay);
     pipeline_minecraft.push_worker(&line_worker);
     pipeline_minecraft.push_worker(&colorize_worker);
-    pipeline_minecraft.push_worker(&fw);
+    pipeline_minecraft.push_worker(&resource_placement);
     pipeline_minecraft.push_worker(&window_worker);
 
     pipeline_smooth.push_worker(&discreticiser_worker);
     pipeline_smooth.push_worker(&scale_worker);
     pipeline_smooth.push_worker(&translator_worker);
+    pipeline_smooth.push_worker(&visual_cut_worker);
     pipeline_smooth.push_worker(&temporal_worker);
-    pipeline_smooth.push_worker(&rgbg_colorize_worker);
+    pipeline_smooth.push_worker(&colorize_worker);
     pipeline_smooth.push_worker(&interpolator_worker);
     pipeline_smooth.push_worker(&window_worker);
 
     pipeline_difference.push_worker(&discreticiser_worker);
     pipeline_difference.push_worker(&scale_worker);
     pipeline_difference.push_worker(&translator_worker);
+    pipeline_difference.push_worker(&visual_cut_worker);
     pipeline_difference.push_worker(&temporal_worker);
     pipeline_difference.push_worker(&difference_worker);
     pipeline_difference.push_worker(&colorize_worker);
@@ -172,6 +173,7 @@ int main(int argc, char **argv)
     pipeline_stripe.push_worker(&discreticiser_worker);
     pipeline_stripe.push_worker(&scale_worker);
     pipeline_stripe.push_worker(&translator_worker);
+    pipeline_stripe.push_worker(&visual_cut_worker);
     pipeline_stripe.push_worker(&temporal_worker);
     pipeline_stripe.push_worker(&stripe_worker);
     pipeline_stripe.push_worker(&colorize_worker);
@@ -182,62 +184,73 @@ int main(int argc, char **argv)
     pipeline_calibration.push_worker(&calib_worker);
     pipeline_calibration.push_worker(&window_worker);
 
-
 #if DO_CALIB
     pipeline_calibration.start();
-    while(stay_in_calib && window && twindow);
+    while (stay_in_calib && window
+#if WEB_UI
+#else
+           && twindow
+#endif
+    )
+        ;
     pipeline_calibration.stop();
 #endif
 
-    pipeline_minecraft.start();
+    pipeline_smooth.start();
 
 #if WEB_UI
-    Pipeline &current_pipeline = pipeline_minecraft;
 
     Webserver webserver{};
     webserver.create();
     webserver.listen(8080);
 
-    auto data = webserver.get_data();
-    while(window) {
-        auto new_data = webserver.get_data();
-        if (new_data.filter == data.filter) continue;
-        switch (data.filter) {
-            clog(info) << "Received new HTTP Data - Initiating Pipeline Switch!" << std::endl;
-            current_pipeline.stop();
-            clog(info) << "Switching to -> ";
-            switch (data.filter) {
-                case Data::Filter::NORMAL:
-                    clog(info) << "SMOOTH FILTER PIPELINE" << std::endl;
-                    pipeline_smooth.start();
-                    current_pipeline = pipeline_smooth;
-                    break;
-                case Data::Filter::BLOCKCRAFT:
-                    clog(info) << "BLOCKCRAFT FILTER PIPELINE" << std::endl;
-                    pipeline_minecraft.start();
-                    current_pipeline = pipeline_minecraft;
-                    break;
-                case Data::Filter::DIFFERENCE:
-                    clog(info) << "DIFFERENCE FILTER PIPELINE" << std::endl;
-                    pipeline_difference.start();
-                    current_pipeline = pipeline_difference;
-                    break;
-                case Data::Filter::STRIPE:
-                    clog(info) << "STRIPE FILTER PIPELINE" << std::endl;
-                    pipeline_stripe.start();
-                    current_pipeline = pipeline_stripe;
-                    break;
-            }
+    auto filter = webserver.get_data().filter;
+    while (window)
+    {
+        auto new_filter = webserver.get_data().filter;
+        if (new_filter == filter)
+            continue;
+        filter = new_filter;
+
+        clog(info) << "Received new HTTP Data - Initiating Pipeline Switch!" << std::endl;
+        pipeline_minecraft.stop();
+        pipeline_smooth.stop();
+        pipeline_difference.stop();
+        pipeline_stripe.stop();
+        difference_worker.reset_save();
+        clog(info) << "Switching to -> ";
+        switch (filter)
+        {
+        case Data::Filter::NORMAL:
+            clog(info) << "SMOOTH FILTER PIPELINE" << std::endl;
+            pipeline_smooth.start();
+            break;
+        case Data::Filter::BLOCKCRAFT:
+            clog(info) << "BLOCKCRAFT FILTER PIPELINE" << std::endl;
+            pipeline_minecraft.start();
+            break;
+        case Data::Filter::DIFFERENCE:
+            clog(info) << "DIFFERENCE FILTER PIPELINE" << std::endl;
+            pipeline_difference.start();
+            break;
+        case Data::Filter::STRIPE:
+            clog(info) << "STRIPE FILTER PIPELINE" << std::endl;
+            pipeline_stripe.start();
+            break;
         }
     }
 
+    pipeline_minecraft.stop();
+    pipeline_smooth.stop();
+    pipeline_difference.stop();
+    pipeline_stripe.stop();
 #else
     int state = twindow.get_dat();
     twindow.render_matrix(getCaptureIndex(state));
 
-    while(window && twindow)
+    while (window && twindow)
     {
-        if(state != twindow.get_dat())
+        if (state != twindow.get_dat())
         {
             twindow.cooldown = true;
             state = twindow.get_dat();
@@ -249,19 +262,19 @@ int main(int argc, char **argv)
             pipeline_difference.stop();
             pipeline_stripe.stop();
 
-            if(state == 0)
+            if (state == 0)
             {
                 pipeline_minecraft.start();
             }
-            else if(state == 1)
+            else if (state == 1)
             {
                 pipeline_smooth.start();
             }
-            else if(state == 2)
+            else if (state == 2)
             {
                 pipeline_difference.start();
             }
-            else if(state == 3)
+            else if (state == 3)
             {
                 pipeline_stripe.start();
             }
@@ -269,7 +282,7 @@ int main(int argc, char **argv)
             difference_worker.reset_save();
             twindow.cooldown = false;
         }
-        if(twindow.docapture)
+        if (twindow.docapture)
         {
             twindow.docapture = false;
             cv::Mat mat = window.capture();
@@ -279,6 +292,7 @@ int main(int argc, char **argv)
 
     window.close();
     twindow.close();
-    while(window || twindow);
+    while (window || twindow)
+        ;
 #endif
 }
