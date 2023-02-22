@@ -12,6 +12,10 @@
 #include "Worker.hpp"
 #include "Provider.hpp"
 
+/**
+ * The Heart of the Project
+ * Enables fast concurrent Matrix calculations
+ */
 class Pipeline {
 private:
     Provider *m_provider{};
@@ -21,22 +25,38 @@ private:
     std::atomic_bool m_running = false;
 
 public:
+    /**
+     * Constructs a Pipeline and binds it to a provider
+     * @param provider Provider to bind to
+     */
     explicit Pipeline(Provider *provider);
 
     ~Pipeline();
 
+    /**
+     * Starts Provider and every Worker in Pipeline.
+     * Spawns a thread polling workers and transporting matrices through the pipeline
+     * @return If the pipeline was already running
+     */
     bool start();
 
+    /**
+     * Stops Provider and every Worker in Pipeline.
+     * Joins the polling and transporting thread.
+     * @return If the Pipeline was already stopped
+     */
     bool stop();
 
+    /**
+     * Adds Worker to the end of the Pipeline
+     * @param worker Pointer to to be added Worker
+     */
     void push_worker(Worker *worker);
 
-    Provider *replace_provider(Provider *provider);
-
-    void insert_worker_before(std::string id, Worker *worker);
-
-    Worker *remove_worker(std::string id);
-
+    /**
+     * Debug the current pipeline configuration
+     * @return String-Vector with Provider/Worker ids in correct order
+     */
     std::vector<std::string> get_pipeline();
 };
 
