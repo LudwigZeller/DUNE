@@ -80,11 +80,15 @@ Window::Window(const char *title, const int _type) : m_type(_type) {
     glfwSwapInterval(1);
     glfwSetWindowAttrib(window, GLFW_DECORATED, FULLSCREEN ? GLFW_FALSE : GLFW_TRUE);
 
+#if WEB_UI
+    glfwSetKeyCallback(window, Window::onKey);
+#else
     if(_type == MONITOR_TOUCHDISPLAY_FIX)
     {
         glfwSetKeyCallback(window, Window::onKey);
         glfwSetMouseButtonCallback(window, Window::onPress);
     }
+#endif
 
     glfwSetErrorCallback([](int error, const char *description) {
         clog(err) << "GLFW Error callback: " << error << ": " << description << std::endl;

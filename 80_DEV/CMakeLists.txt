@@ -13,7 +13,7 @@ set(PROJECT_FILES
         utils.cpp
         Window.cpp
         Pipeline/Pipeline.cpp
-        TouchwndRes.cpp)
+        webserver/Webserver.cpp)
 ##################################################################
 
 set(OpenGL_GL_PREFERENCE LEGACY)

@@ -27,7 +27,7 @@ const static cv::Vec3b col_index[DISCRETE_STEPS] = {
     //Ocean has #1-#4
     ocean_blue, ocean_blue * 1.1, shore_blue, shore_blue * 1.2,
     //Green plane has #5-#8
-    limestone_yellow * 1.5, plains_green * 1.1, plains_green * 0.9, forest_green,
+    plains_green * 1.2, plains_green * 1.1, plains_green * 0.9, forest_green,
     //Stone plane has #9-#12
     limestone_yellow, limestone_yellow * 1.1, granite_orange, granite_orange * 0.9,
     //Snow plane has #13-#14
@@ -36,7 +36,7 @@ const static cv::Vec3b col_index[DISCRETE_STEPS] = {
     black
 };
 
-const static cv::Vec3b rgbg_index[DISCRETE_STEPS] = {
+const static cv::Vec3b pride_index[DISCRETE_STEPS] = {
     black,
     red,red,red,
     orange, orange,
@@ -52,6 +52,7 @@ const static cv::Vec3b beach_index[DISCRETE_STEPS] = {
     black,
     //Ocean has #1-#4
     ocean_blue, ocean_blue * 1.1, shore_blue, shore_blue * 1.2,
+    //
     black, black, black, black, black, black, black, black, black, black, black
 };
 
@@ -69,7 +70,7 @@ class ColorizeWorker : public Worker
 public:
     enum COLORIZE_TYPE_e {
         DEFAULT = 0,
-        RGBG = 1,
+        PRIDE = 1,
         BEACH = 2,
     };
 
@@ -86,8 +87,8 @@ public:
             case BEACH:
                 index_ptr = beach_index;
             break;
-            case RGBG:
-                index_ptr = rgbg_index;
+            case PRIDE:
+                index_ptr = pride_index;
             break;
             default:
                 index_ptr = col_index;
