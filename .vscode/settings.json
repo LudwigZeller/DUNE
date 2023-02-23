@@ -67,6 +67,12 @@
         "typeinfo": "cpp",
         "*.dres": "cpp",
         "bitset": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "csignal": "cpp",
+        "codecvt": "cpp",
+        "optional": "cpp",
+        "cfenv": "cpp",
+        "typeindex": "cpp",
+        "variant": "cpp"
     },
 }

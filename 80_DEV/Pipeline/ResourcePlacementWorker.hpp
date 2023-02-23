@@ -33,7 +33,7 @@ public:
         {
             int x = (std::rand() % (STREAM_WIDTH - 2*width)) + width;
             int y = (std::rand() % (STREAM_HEIGHT - 2*height)) + height;
-        clog(err) << get_kernel(_asset_type).size() << std::endl;
+        //clog(err) << get_kernel(_asset_type).size() << std::endl;
             get_kernel(_asset_type)[i] = aRTE_point_bool{.r = cv::Rect{
                 x, y,
                 width, height

@@ -58,13 +58,14 @@
 #include "Pipeline/Pipeline.hpp"
 #include "Pipeline/WindowWorker.hpp"
 #include "Pipeline/CameraProvider.hpp"
+#include "Pipeline/Test_Provider.hpp"
 #include "Pipeline/FilterColorizeWorker.hpp"
 #include "Pipeline/FilterTemporalWorker.hpp"
 #include "Pipeline/FilterLineWorker.hpp"
 #include "Pipeline/FilterInterpolatorWorker.hpp"
 #include "Pipeline/FilterDiscreticiser.hpp"
 #include "Pipeline/FilterScaleWorker.hpp"
-#include "Pipeline/FunnyW.hpp"
+#include "Pipeline/ResourcePlacementWorker.hpp"
 #include "Pipeline/FilterAssetOverlayWorker.hpp"
 #include "Pipeline/Calib.hpp"
 #include "Pipeline/Translator.hpp"
@@ -90,27 +91,35 @@ volatile bool stay_in_calib = true;
 
 int main(int argc, char **argv)
 {
-    std::regex _mog{"-q([-0-9]+),([-0-9]+),([0-9.]+),([0-9.]+)"};
-    std::smatch smat;
-
-    for (int i = 1; i < argc; i++)
-    {
-        std::string l{argv[i]};
-        if (std::regex_search(l, smat, _mog))
-        {
-            translation_vec.x = std::atoi(smat[1].str().c_str());
-            translation_vec.y = std::atoi(smat[2].str().c_str());
-            scalar_kernel.width = (int)(std::atof(smat[3].str().c_str()) * STREAM_WIDTH);
-            scalar_kernel.height = (int)(std::atof(smat[4].str().c_str()) * STREAM_HEIGHT);
-
-            clog(warn) << "Value take-over: \ntv.x = " << translation_vec.x << "\ntv.y = " << translation_vec.y << "\nsk.w = " << scalar_kernel.width << "\nsk.h = " << scalar_kernel.height << std::endl;
-        }
-    }
-
     std::srand((unsigned)std::time(nullptr));
     std::cout << "Starting DepthCamera, running in " << std::this_thread::get_id() << std::endl;
-    CameraProvider camera_provider{"Camera_Provider"};
-    // Test_Provider camera_provider{"Test_Provider"};
+    Provider *camera_provider = new CameraProvider{"Camera_Provider"};
+
+    //! Temp
+    Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
+
+    if(argc > 1)
+    {
+        cv::Mat mat = load_depth_image(argv[1]);
+        if(!mat.empty())
+        {
+            camera_provider->stop();
+            delete camera_provider;
+            //const short m_disc_start = 1150;
+            //const short m_disc_end = 1350;
+            //const short m_lin_steps = DISCRETE_STEPS;
+            //mat.convertTo(mat, CV_16U, -13.33333333, 1350);
+
+            mat.forEach<uchar>([&](uchar &uc, const int *pos){
+                if(uc > 15) exit(-1);
+            });
+
+            camera_provider = new Test_Provider{"Test_Provider", mat};
+            discreticiser_worker.do_test_adr(((Test_Provider*) camera_provider)->get_test_adr());
+
+
+        }
+    }
 
     Window window{"DUNE", MONITOR_BEAMER_FIX};
 #if WEB_UI
@@ -124,7 +133,8 @@ int main(int argc, char **argv)
     Filter::ColorizeWorker rgbg_colorize_worker{"Filter_Colorize_RGBG_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::BEACH};
     Filter::LineWorker line_worker{"Filter_Line_Worker"};
     Filter::InterpolatorWorker interpolator_worker{"Filter_Interpolator_Worker"};
-    Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
+    //> temp > Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
+    discreticiser_worker.bind_to_window(window);
     Filter::ScaleWorker scale_worker{"Filter_Scale_Worker"};
     Filter::ResourcePlacementWorker resource_placement{"Resource_Placement_Worker", BC_Trees, tree_asmak_WIDTH, tree_asmak_HEIGHT, tree_asmak_DATA};
     Filter::AssetOverlayWorker asset_overlay{"Asset_Overlay_Filter", BC_Trees};
@@ -134,11 +144,11 @@ int main(int argc, char **argv)
     TranslatorWorker translator_worker{"Translator_Worker", true};
     Filter::VisualCutWorker visual_cut_worker{"Visual_Cut_Worker"};
 
-    Pipeline pipeline_minecraft{&camera_provider};
-    Pipeline pipeline_smooth{&camera_provider};
-    Pipeline pipeline_difference{&camera_provider};
-    Pipeline pipeline_stripe{&camera_provider};
-    Pipeline pipeline_calibration{&camera_provider};
+    Pipeline pipeline_minecraft{camera_provider};
+    Pipeline pipeline_smooth{camera_provider};
+    Pipeline pipeline_difference{camera_provider};
+    Pipeline pipeline_stripe{camera_provider};
+    Pipeline pipeline_calibration{camera_provider};
 
     pipeline_minecraft.push_worker(&discreticiser_worker);
     pipeline_minecraft.push_worker(&scale_worker);
@@ -295,4 +305,6 @@ int main(int argc, char **argv)
     while (window || twindow)
         ;
 #endif
+    camera_provider->stop();
+    delete camera_provider;
 }

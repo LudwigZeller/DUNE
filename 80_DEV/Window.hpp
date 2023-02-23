@@ -47,15 +47,9 @@ public:
     inline int get_dat() const {return this->m_data;}
     inline void set_dat(const int dat) {this->m_data = dat;}
 
-    inline cv::Mat capture()
+    inline void bind_capture_adress(std::function<void()> fct)
     {
-        cv::Mat rt = cv::Mat(cv::Size{160,90}, CV_8UC3);
-        this->m_matrix(cv::Rect{
-            STREAM_WIDTH / 2 - 80,
-            STREAM_HEIGHT / 2 - 45,
-            160,90
-        }).copyTo(rt);
-        return rt;
+        fct_ptr = fct;
     }
 
 
@@ -69,6 +63,7 @@ private:
     int m_type = 0;
     int m_data = 0;
     cv::Point2i swipe_pt;
+    std::function<void()> fct_ptr;
 
     inline static void onKey(GLFWwindow *window, int key, int scancode, int action, int mods)
     {
