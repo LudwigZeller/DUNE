@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Worker.hpp"
+#include <functional>
 
 const static cv::Vec3b black{0,0,0};
 const static cv::Vec3b ocean_blue{138,94,51};
@@ -60,9 +61,10 @@ const static cv::Vec3b difference_index[DISCRETE_STEPS] = {
     //black
     black,
     //below = red
-    red, red * 0.8, red * 0.65, red * 0.5, red * 0.3, red * 0.2, red * 0.1,
+    red, red * 0.8, red * 0.65, red * 0.5, red * 0.3, red * 0.1, black,
+    //middle = none
     //above = green
-    green * 0.1, green * 0.2, green * 0.3, green * 0.5, green * 0.65, green * 0.8, green,
+    black, green * 0.1, green * 0.3, green * 0.5, green * 0.65, green * 0.8, green,
     //black
     black
 };
@@ -89,6 +91,7 @@ public:
 protected:
     COLORIZE_TYPE_e colorize_type = DEFAULT;
     cv::Vec3b const* index_ptr;
+    int dat = 0;
 
 public:
     explicit ColorizeWorker(std::string id, COLORIZE_TYPE_e ctype = DEFAULT): Worker{std::move(id), MatIOType::CHAR_8, MatIOType::VEC_3_CHAR_8}, colorize_type(ctype)
@@ -102,9 +105,6 @@ public:
             case PRIDE:
                 index_ptr = pride_index;
             break;
-            case DIFFERENCE:
-                index_ptr = difference_index;
-            break;
             default:
                 index_ptr = col_index;
             break;
@@ -115,10 +115,22 @@ protected:
     cv::Mat tmp;
 
     void start_up() override
-    { /* No init required right now */ }
+    {
+        if(colorize_type == DIFFERENCE)
+        {
+            dat = 0;
+            index_ptr = col_index;
+        }
+    }
 
     void work() override
     {
+        if(colorize_type == DIFFERENCE && dat < 30 + TEMPORAL_BUFFER_LENGTH)
+        {
+            dat++;
+            index_ptr = (dat < 30 + TEMPORAL_BUFFER_LENGTH) ? col_index : difference_index;
+        }
+
         tmp = std::move(this->m_work_matrix);
         this->m_work_matrix = cv::Mat(tmp.size(), CV_8UC3);
 

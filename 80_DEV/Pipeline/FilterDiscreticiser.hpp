@@ -47,8 +47,6 @@ protected:
         this->m_work_matrix = cv::Mat(tmp.size(), CV_8U);
 
         this->m_work_matrix.forEach<uchar>([&](uchar &c, const int *pos){
-            #define ___min_(a,b) (((a) < (b)) ? (a) : (b))
-            #define ___max_(a,b) (((a) < (b)) ? (b) : (a))
             double t = _scalc2 * (this->tmp.at<short>(pos)- m_disc_start);
             c = (DISCRETE_STEPS - 1) - (uchar) ___max_(___min_(t + 1, this->m_lin_steps - 1), 0);
             //c = ~(~(1 << c) + 1);

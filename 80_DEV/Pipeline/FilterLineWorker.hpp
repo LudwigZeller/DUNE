@@ -23,19 +23,16 @@ protected:
     void start_up() override
     { /* No start up required for now */ }
 
-    #define __lw_min(a,b) ((a) < (b) ? (a) : (b))
-    #define __lw_max(a,b) ((a) > (b) ? (a) : (b))
-
     #define __ldetail (1)
 
     void work() override
     {
         this->m_temp_stor = this->m_work_matrix.clone();
         this->m_work_matrix.forEach<uchar>([&](uchar &pixel, const int *pos){
-            int ym = __lw_min(pos[0] + __ldetail, m_temp_stor.rows - 1);
-            int xm = __lw_min(pos[1] + __ldetail, m_temp_stor.cols - 1);
-            int yn = __lw_max(pos[0] - __ldetail, 0);
-            int xn =  __lw_max(pos[1] - __ldetail, 0);
+            int ym = ___min_(pos[0] + __ldetail, m_temp_stor.rows - 1);
+            int xm = ___min_(pos[1] + __ldetail, m_temp_stor.cols - 1);
+            int yn = ___max_(pos[0] - __ldetail, 0);
+            int xn = ___max_(pos[1] - __ldetail, 0);
 
             uchar &cmp = this->m_temp_stor.at<uchar>(pos);
             int rt = 

@@ -14,9 +14,8 @@ namespace Filter {
 class TemporalWorker : public Worker
 {
 protected:
-    #define num_buffer 12
-    std::vector<cv::Mat> buffer{num_buffer};
-    const double i_num_buffer = 1.0 / num_buffer;
+    std::vector<cv::Mat> buffer{TEMPORAL_BUFFER_LENGTH};
+    const double i_num_buffer = 1.0 / TEMPORAL_BUFFER_LENGTH;
 
 public:
     TemporalWorker(std::string id): Worker{std::move(id), MatIOType::CHAR_8, MatIOType::CHAR_8}

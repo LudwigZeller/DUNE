@@ -12,6 +12,8 @@
 #include <utility>
 #include <atomic>
 #include "../utils.hpp"
+#include "../config.hpp"
+#include "../matdef.hpp"
 #include "MatIO.hpp"
 
 class Worker {

@@ -16,36 +16,40 @@ class DifferenceWorker : public Worker
 protected:
     cv::Mat m_reference;
     bool save_first = true;
+    bool linger_frame;
+    int val_linger_frame = 0;
 
 public:
-    explicit DifferenceWorker(std::string id): Worker(std::move(id), MatIOType::CHAR_8, MatIOType::CHAR_8)
+    explicit DifferenceWorker(std::string id, bool linger_frame = false): Worker(std::move(id), MatIOType::CHAR_8, MatIOType::CHAR_8), linger_frame(linger_frame)
     { /* No extra construction required */ }
 
     void reset_save()
     {
         this->save_first = true;
+        if(linger_frame) val_linger_frame = PERLIN_LINGER_LENGTH + TEMPORAL_BUFFER_LENGTH;
     }
 
 protected:
     void start_up() override
     {
-        /* No startup required */
+        this->save_first = true;
+        if(linger_frame) val_linger_frame = PERLIN_LINGER_LENGTH + TEMPORAL_BUFFER_LENGTH;
     }
 
     void work() override
     {
-        if(save_first)
+        if(save_first && !(linger_frame && val_linger_frame >= PERLIN_LINGER_LENGTH))
         {
             this->save_first = false;
             this->m_reference = this->m_work_matrix.clone();
         }
 
-        this->m_work_matrix.forEach<uchar>([&](uchar &pixel, const int *pos)
-        {
-        #define __abs(a) (((a) > 0) ? (a) : -(a))
-            pixel = __abs((signed char) pixel - (signed char) this->m_reference.at<uchar>(pos));
-            pixel = pixel > 1 ? pixel - 1 : 0;
-        });
+        if(val_linger_frame) val_linger_frame--;
+        if(!val_linger_frame)
+            this->m_work_matrix.forEach<uchar>([&](uchar &pixel, const int *pos)
+            {
+                pixel = 7 + (signed char) this->m_reference.at<uchar>(pos) - (signed char) pixel;
+            });
     }
 
 
