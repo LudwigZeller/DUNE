@@ -72,6 +72,8 @@
 #include "Pipeline/FilterDifferenceWorker.hpp"
 #include "Pipeline/FilterStripeWorker.hpp"
 #include "Pipeline/VisualCutWorker.hpp"
+#include "Pipeline/GameLogicWorker.hpp"
+#include "Pipeline/GameDrawWorker.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -105,19 +107,12 @@ int main(int argc, char **argv)
         {
             camera_provider->stop();
             delete camera_provider;
-            //const short m_disc_start = 1150;
-            //const short m_disc_end = 1350;
-            //const short m_lin_steps = DISCRETE_STEPS;
-            //mat.convertTo(mat, CV_16U, -13.33333333, 1350);
-
-            mat.forEach<uchar>([&](uchar &uc, const int *pos){
-                if(uc > 15) exit(-1);
-            });
+            const short m_disc_start = 1150;
+            const short m_disc_end = 1350;
+            const short m_lin_steps = DISCRETE_STEPS;
+            mat.convertTo(mat, CV_16U, -13.33333333, 1350);
 
             camera_provider = new Test_Provider{"Test_Provider", mat};
-            discreticiser_worker.do_test_adr(((Test_Provider*) camera_provider)->get_test_adr());
-
-
         }
     }
 
@@ -143,12 +138,26 @@ int main(int argc, char **argv)
     CalibWorker calib_worker{"Calib_Worker"};
     TranslatorWorker translator_worker{"Translator_Worker", true};
     Filter::VisualCutWorker visual_cut_worker{"Visual_Cut_Worker"};
+    Simulation::GameLogicWorker game_logic_worker{"Game_Logic_Worker"};
+    Simulation::GameDrawWorker game_draw_worker{"Game_Draw_Worker", &game_logic_worker};
 
     Pipeline pipeline_minecraft{camera_provider};
     Pipeline pipeline_smooth{camera_provider};
     Pipeline pipeline_difference{camera_provider};
     Pipeline pipeline_stripe{camera_provider};
     Pipeline pipeline_calibration{camera_provider};
+
+    pipeline_smooth.push_worker(&discreticiser_worker);
+    pipeline_smooth.push_worker(&scale_worker);
+    pipeline_smooth.push_worker(&translator_worker);
+    pipeline_smooth.push_worker(&visual_cut_worker);
+    pipeline_smooth.push_worker(&temporal_worker);
+    pipeline_smooth.push_worker(&game_logic_worker);
+    pipeline_smooth.push_worker(&colorize_worker);
+    pipeline_smooth.push_worker(&interpolator_worker);
+    pipeline_smooth.push_worker(&game_draw_worker);
+    pipeline_smooth.push_worker(&window_worker);
+
 
     pipeline_minecraft.push_worker(&discreticiser_worker);
     pipeline_minecraft.push_worker(&scale_worker);
@@ -160,15 +169,6 @@ int main(int argc, char **argv)
     pipeline_minecraft.push_worker(&colorize_worker);
     pipeline_minecraft.push_worker(&resource_placement);
     pipeline_minecraft.push_worker(&window_worker);
-
-    pipeline_smooth.push_worker(&discreticiser_worker);
-    pipeline_smooth.push_worker(&scale_worker);
-    pipeline_smooth.push_worker(&translator_worker);
-    pipeline_smooth.push_worker(&visual_cut_worker);
-    pipeline_smooth.push_worker(&temporal_worker);
-    pipeline_smooth.push_worker(&colorize_worker);
-    pipeline_smooth.push_worker(&interpolator_worker);
-    pipeline_smooth.push_worker(&window_worker);
 
     pipeline_difference.push_worker(&discreticiser_worker);
     pipeline_difference.push_worker(&scale_worker);

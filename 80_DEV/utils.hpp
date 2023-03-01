@@ -438,7 +438,7 @@ inline cv::Mat load_depth_image(const std::string &path)
     }
 
     std::ifstream inp{path, std::ios_base::openmode::_S_bin | std::ios_base::openmode::_S_ate};
-    std::ifstream::pos_type _filesize = inp.tellg() + 1;
+    std::ifstream::pos_type _filesize = inp.tellg();
     inp.seekg(0, std::ios::beg);
 
     std::vector<char> dat{(int) _filesize, std::allocator<char>{}};
@@ -459,7 +459,7 @@ inline cv::Mat load_depth_image(const std::string &path)
     {
         int idx = i >> 1;
         int ct = i & 1;
-        ptr[i] = 0x0F & (dat[idx] >> ct);
+        ptr[i] = 0x0F & (dat[idx] >> (ct ? 4 : 0));
     }
 
     return mat;
