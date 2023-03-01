@@ -25,7 +25,7 @@ public:
         {
             *i = cv::Mat::zeros(cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_8U);
         }
-        clog(info) << this->get_id() << " initialized!" << std::endl;
+        
     }
 
 protected:

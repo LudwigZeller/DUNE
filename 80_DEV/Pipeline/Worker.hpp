@@ -36,11 +36,11 @@ protected:
 public:
     const MatIOType::MatIOType_t m_input_type, m_output_type;
 
-    explicit Worker(std::string id, MatIOType::MatIOType_t input, MatIOType::MatIOType_t output) : m_id(std::move(id)), m_input_type(input), m_output_type(output) {
-        clog(info) << "Constructed " << m_id << std::endl;
-    };
+    explicit Worker(std::string id, MatIOType::MatIOType_t input, MatIOType::MatIOType_t output) : m_id(std::move(id)), m_input_type(input), m_output_type(output)
+    { /* No required extra code */ }
 
-    virtual ~Worker() {
+    virtual ~Worker()
+    {
         this->stop();
     };
 
@@ -89,7 +89,6 @@ public:
                 }
             }
         }};
-        clog(info) << "Started " << this->get_id() << "!" << std::endl;
         return true;
     }
 
@@ -97,7 +96,6 @@ public:
         if (!m_running) return false;
         m_running = false;
         m_thread.join();
-        clog(info) << "Stopped " << this->get_id() << "!" << std::endl;
         return true;
     }
 

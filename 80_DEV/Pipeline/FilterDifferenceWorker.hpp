@@ -19,9 +19,7 @@ protected:
 
 public:
     explicit DifferenceWorker(std::string id): Worker(std::move(id), MatIOType::CHAR_8, MatIOType::CHAR_8)
-    {
-        clog(info) << this->get_id() << " initialized!" << std::endl;
-    }
+    { /* No extra construction required */ }
 
     void reset_save()
     {

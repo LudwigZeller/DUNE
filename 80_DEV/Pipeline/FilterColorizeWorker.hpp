@@ -52,8 +52,19 @@ const static cv::Vec3b beach_index[DISCRETE_STEPS] = {
     black,
     //Ocean has #1-#4
     ocean_blue, ocean_blue * 1.1, shore_blue, shore_blue * 1.2,
-    //
+    //TODO: Is a joke for now
     black, black, black, black, black, black, black, black, black, black, black
+};
+
+const static cv::Vec3b difference_index[DISCRETE_STEPS] = {
+    //black
+    black,
+    //below = red
+    red, red * 0.8, red * 0.65, red * 0.5, red * 0.3, red * 0.2, red * 0.1,
+    //above = green
+    green * 0.1, green * 0.2, green * 0.3, green * 0.5, green * 0.65, green * 0.8, green,
+    //black
+    black
 };
 
 /**
@@ -72,6 +83,7 @@ public:
         DEFAULT = 0,
         PRIDE = 1,
         BEACH = 2,
+        DIFFERENCE = 3,
     };
 
 protected:
@@ -81,7 +93,7 @@ protected:
 public:
     explicit ColorizeWorker(std::string id, COLORIZE_TYPE_e ctype = DEFAULT): Worker{std::move(id), MatIOType::CHAR_8, MatIOType::VEC_3_CHAR_8}, colorize_type(ctype)
     {
-        clog(info) << this->get_id() << " initialized!" << std::endl;
+        
         switch(ctype)
         {
             case BEACH:
@@ -89,6 +101,9 @@ public:
             break;
             case PRIDE:
                 index_ptr = pride_index;
+            break;
+            case DIFFERENCE:
+                index_ptr = difference_index;
             break;
             default:
                 index_ptr = col_index;

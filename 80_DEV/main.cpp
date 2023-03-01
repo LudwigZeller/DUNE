@@ -73,6 +73,8 @@
 #include "Pipeline/FilterStripeWorker.hpp"
 #include "Pipeline/VisualCutWorker.hpp"
 
+#include "PerlinNoise.hpp"
+
 /*****           MISC               *****/
 #include <iostream>
 #include <chrono>
@@ -93,33 +95,69 @@ int main(int argc, char **argv)
 {
     std::srand((unsigned)std::time(nullptr));
     std::cout << "Starting DepthCamera, running in " << std::this_thread::get_id() << std::endl;
-    Provider *camera_provider = new CameraProvider{"Camera_Provider"};
+
+    cv::Mat test_mat{cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_16U};
+    {
+        const short m_disc_start = 1150;
+        const short m_disc_end = 1350;
+        const short m_lin_steps = DISCRETE_STEPS;
+
+        siv::PerlinNoise::seed_type seed = (unsigned) std::rand();
+        siv::PerlinNoise perlin{seed};
+
+        /*const double downscale_filter[16] = {
+            1.00, 1.000, 0.999, 0.998,
+            0.996, 0.993, 0.995, 0.999,
+            0.997, 0.995, 0.995, 0.998,
+            0.9991, 0.9992, 0.9993, 1.00
+        };*/
+
+        const double downscale_filter[16] = {
+            1.00, 1.00, 0.99, 0.99,
+            0.99, 0.99, 0.99, 0.99,
+            0.99, 0.991, 0.991, 0.991,
+            0.992, 0.992, 0.992, 0.992
+        };
+        
+        cv::Mat floatpix{cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_32F};
+        floatpix.forEach<float>([&](float &pixel, const int *pos)
+        {
+            float val = perlin.octave2D_01(0.002 * pos[0], 0.002 * pos[1], 4);
+            pixel = val * 16.0 + 1;
+            //pixel = m_disc_end - discr * ((m_disc_end - m_disc_start) / m_lin_steps);
+        });
+
+        double integr_vol = 0.0;
+        for(int y = 0; y < STREAM_HEIGHT; y++)
+            for(int x = 0; x < STREAM_WIDTH; x++)
+            {
+                integr_vol += floatpix.at<float>(y,x);
+                test_mat.at<short>(y,x) = (short) floatpix.at<float>(y,x);
+            }
+
+        while(integr_vol < TARGET_VOLUME_LOWER || integr_vol > TARGET_VOLUME_UPPER)
+        {
+            bool b = integr_vol < TARGET_VOLUME_LOWER;
+            integr_vol = 0.0;
+
+            for(int y = 0; y < STREAM_HEIGHT; y++)
+                for(int x = 0; x < STREAM_WIDTH; x++)
+                {
+                    float &val = floatpix.at<float>(y,x);
+                    val = b ? (val / downscale_filter[(int) val]) : (val * downscale_filter[(int) val]);
+                    integr_vol += test_mat.at<short>(y,x) = (short) val;
+                }
+            
+            clog(warn) << "integr_vol: " << (int) integr_vol << " Target: " << TARGET_VOLUME << std::endl;
+        }
+
+        test_mat.convertTo(test_mat, CV_16U, -13.3333333, 1350);
+    }
+
+    Provider *camera_provider = new Test_Provider{"Camera_Provider", test_mat};
 
     //! Temp
     Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
-
-    if(argc > 1)
-    {
-        cv::Mat mat = load_depth_image(argv[1]);
-        if(!mat.empty())
-        {
-            camera_provider->stop();
-            delete camera_provider;
-            //const short m_disc_start = 1150;
-            //const short m_disc_end = 1350;
-            //const short m_lin_steps = DISCRETE_STEPS;
-            //mat.convertTo(mat, CV_16U, -13.33333333, 1350);
-
-            mat.forEach<uchar>([&](uchar &uc, const int *pos){
-                if(uc > 15) exit(-1);
-            });
-
-            camera_provider = new Test_Provider{"Test_Provider", mat};
-            discreticiser_worker.do_test_adr(((Test_Provider*) camera_provider)->get_test_adr());
-
-
-        }
-    }
 
     Window window{"DUNE", MONITOR_BEAMER_FIX};
 #if WEB_UI
@@ -130,7 +168,7 @@ int main(int argc, char **argv)
     WindowWorker window_worker{"Window_Worker", &window};
     Filter::TemporalWorker temporal_worker{"Filter_Temporal_Worker"};
     Filter::ColorizeWorker colorize_worker{"Filter_Colorize_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::DEFAULT};
-    Filter::ColorizeWorker rgbg_colorize_worker{"Filter_Colorize_RGBG_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::BEACH};
+    Filter::ColorizeWorker diff_colorize_worker{"Filter_Colorize_Diff_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::DIFFERENCE};
     Filter::LineWorker line_worker{"Filter_Line_Worker"};
     Filter::InterpolatorWorker interpolator_worker{"Filter_Interpolator_Worker"};
     //> temp > Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
@@ -167,7 +205,7 @@ int main(int argc, char **argv)
     pipeline_smooth.push_worker(&visual_cut_worker);
     pipeline_smooth.push_worker(&temporal_worker);
     pipeline_smooth.push_worker(&colorize_worker);
-    pipeline_smooth.push_worker(&interpolator_worker);
+    //pipeline_smooth.push_worker(&interpolator_worker);
     pipeline_smooth.push_worker(&window_worker);
 
     pipeline_difference.push_worker(&discreticiser_worker);

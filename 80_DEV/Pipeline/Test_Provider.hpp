@@ -26,11 +26,6 @@ public:
         this->m_work_matrix = saved_mat.clone();
         while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start) < dur);
     }
-
-    cv::Mat *get_test_adr()
-    {
-        return &saved_mat;
-    }
 };
 
 #endif //DUNE_PIPELINE_TEST_WORKER_PROVIDER_HPP
