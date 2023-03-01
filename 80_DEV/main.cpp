@@ -72,8 +72,7 @@
 #include "Pipeline/FilterDifferenceWorker.hpp"
 #include "Pipeline/FilterStripeWorker.hpp"
 #include "Pipeline/VisualCutWorker.hpp"
-
-#include "PerlinNoise.hpp"
+#include "Pipeline/FilterPerlinWorker.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -182,11 +181,18 @@ int main(int argc, char **argv)
     TranslatorWorker translator_worker{"Translator_Worker", true};
     Filter::VisualCutWorker visual_cut_worker{"Visual_Cut_Worker"};
 
+    Filter::PerlinWorker perlin_worker{"Perlin_Worker"};
+    Filter::DifferenceWorker perlin_difference_worker{"Filter_Perlin_Difference_Worker", true};
+
     Pipeline pipeline_minecraft{camera_provider};
     Pipeline pipeline_smooth{camera_provider};
     Pipeline pipeline_difference{camera_provider};
     Pipeline pipeline_stripe{camera_provider};
+    Pipeline pipeline_perlin{camera_provider};
+
+#if DO_CALIB
     Pipeline pipeline_calibration{camera_provider};
+#endif
 
     pipeline_minecraft.push_worker(&discreticiser_worker);
     pipeline_minecraft.push_worker(&scale_worker);
@@ -205,7 +211,7 @@ int main(int argc, char **argv)
     pipeline_smooth.push_worker(&visual_cut_worker);
     pipeline_smooth.push_worker(&temporal_worker);
     pipeline_smooth.push_worker(&colorize_worker);
-    //pipeline_smooth.push_worker(&interpolator_worker);
+    pipeline_smooth.push_worker(&interpolator_worker);
     pipeline_smooth.push_worker(&window_worker);
 
     pipeline_difference.push_worker(&discreticiser_worker);
@@ -228,11 +234,23 @@ int main(int argc, char **argv)
     pipeline_stripe.push_worker(&interpolator_worker);
     pipeline_stripe.push_worker(&window_worker);
 
+    pipeline_perlin.push_worker(&perlin_worker);
+    pipeline_perlin.push_worker(&discreticiser_worker);
+    pipeline_perlin.push_worker(&scale_worker);
+    pipeline_perlin.push_worker(&translator_worker);
+    pipeline_perlin.push_worker(&visual_cut_worker);
+    pipeline_perlin.push_worker(&temporal_worker);
+    pipeline_perlin.push_worker(&perlin_difference_worker);
+    pipeline_perlin.push_worker(&diff_colorize_worker);
+    pipeline_perlin.push_worker(&interpolator_worker);
+    pipeline_perlin.push_worker(&window_worker);
+
+
+#if DO_CALIB
     pipeline_calibration.push_worker(&discreticiser_worker);
     pipeline_calibration.push_worker(&calib_worker);
     pipeline_calibration.push_worker(&window_worker);
 
-#if DO_CALIB
     pipeline_calibration.start();
     while (stay_in_calib && window
 #if WEB_UI
@@ -265,7 +283,7 @@ int main(int argc, char **argv)
         pipeline_smooth.stop();
         pipeline_difference.stop();
         pipeline_stripe.stop();
-        difference_worker.reset_save();
+        pipeline_perlin.stop();
         clog(info) << "Switching to -> ";
         switch (filter)
         {
@@ -284,6 +302,10 @@ int main(int argc, char **argv)
         case Data::Filter::STRIPE:
             clog(info) << "STRIPE FILTER PIPELINE" << std::endl;
             pipeline_stripe.start();
+            break;
+        case Data::Filter::PERLIN:
+            clog(info) << "PERLIN FILTER PIPELINE" << std::endl;
+            pipeline_perlin.start();
             break;
         }
     }
