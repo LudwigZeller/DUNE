@@ -26,7 +26,7 @@ public:
     ResourcePlacementWorker(std::string _id, const Asset_Type _asset_type, const int width, const int height, const char *data): Worker(std::move(_id), MatIOType::VEC_3_CHAR_8, MatIOType::VEC_3_CHAR_8),
         asset_type(_asset_type)
     {
-        clog(info) << this->get_id() << " initialized!" << std::endl;
+        
         tree = assetToMat(width, height, data);
 
         for(int i = 0; i < get_kernel(_asset_type).size(); i++)

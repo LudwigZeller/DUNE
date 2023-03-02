@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Worker.hpp"
+#include <functional>
 
 const static cv::Vec3b black{0,0,0};
 const static cv::Vec3b ocean_blue{138,94,51};
@@ -52,8 +53,20 @@ const static cv::Vec3b beach_index[DISCRETE_STEPS] = {
     black,
     //Ocean has #1-#4
     ocean_blue, ocean_blue * 1.1, shore_blue, shore_blue * 1.2,
-    //
+    //TODO: Is a joke for now
     black, black, black, black, black, black, black, black, black, black, black
+};
+
+const static cv::Vec3b difference_index[DISCRETE_STEPS] = {
+    //black
+    black,
+    //below = red
+    red, red * 0.8, red * 0.65, red * 0.5, red * 0.3, red * 0.1, black,
+    //middle = none
+    //above = green
+    black, green * 0.1, green * 0.3, green * 0.5, green * 0.65, green * 0.8, green,
+    //black
+    black
 };
 
 /**
@@ -72,16 +85,19 @@ public:
         DEFAULT = 0,
         PRIDE = 1,
         BEACH = 2,
+        DIFFERENCE = 3,
+        PERLIN = 4
     };
 
 protected:
     COLORIZE_TYPE_e colorize_type = DEFAULT;
     cv::Vec3b const* index_ptr;
+    int dat = 0;
 
 public:
     explicit ColorizeWorker(std::string id, COLORIZE_TYPE_e ctype = DEFAULT): Worker{std::move(id), MatIOType::CHAR_8, MatIOType::VEC_3_CHAR_8}, colorize_type(ctype)
     {
-        clog(info) << this->get_id() << " initialized!" << std::endl;
+        
         switch(ctype)
         {
             case BEACH:
@@ -89,6 +105,9 @@ public:
             break;
             case PRIDE:
                 index_ptr = pride_index;
+            break;
+            case DIFFERENCE:
+                index_ptr = difference_index;
             break;
             default:
                 index_ptr = col_index;
@@ -100,10 +119,22 @@ protected:
     cv::Mat tmp;
 
     void start_up() override
-    { /* No init required right now */ }
+    {
+        if(colorize_type == PERLIN)
+        {
+            dat = 0;
+            index_ptr = col_index;
+        }
+    }
 
     void work() override
     {
+        if(colorize_type == PERLIN && dat < 30 + TEMPORAL_BUFFER_LENGTH)
+        {
+            dat++;
+            index_ptr = (dat < 30 + TEMPORAL_BUFFER_LENGTH) ? col_index : difference_index;
+        }
+
         tmp = std::move(this->m_work_matrix);
         this->m_work_matrix = cv::Mat(tmp.size(), CV_8UC3);
 
@@ -112,6 +143,11 @@ protected:
             pixel = index_ptr[c & ~LINE_MASK];
             pixel *= 1.0 - 0.5 * ((LINE_MASK & c) > 0);
         });
+
+        //if(colorize_type == PERLIN || colorize_type == DIFFERENCE)
+        //{
+        //    //cv::putText()
+        //}
     }
 
 };

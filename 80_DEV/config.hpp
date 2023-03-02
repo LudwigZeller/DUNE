@@ -52,3 +52,9 @@
 #define LINE_MASK                       (0x40)
 #define WEB_UI                          (true)
 #define DO_CALIB                        (false)
+#define TARGET_VOLUME                   (3300000)       //< Discrete sand volume
+#define TARGET_VOLUME_TOLERANCE         (0.05)           //< Discrete sand volume +/-value%
+#define TARGET_VOLUME_UPPER             (TARGET_VOLUME * (1.0 + TARGET_VOLUME_TOLERANCE))
+#define TARGET_VOLUME_LOWER             (TARGET_VOLUME * (1.0 - TARGET_VOLUME_TOLERANCE))
+#define TEMPORAL_BUFFER_LENGTH          (12)            //< Size for Temporal buffer
+#define PERLIN_LINGER_LENGTH            (30)            //< Amount of time that the perlin image stays on screen

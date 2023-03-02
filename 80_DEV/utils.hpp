@@ -438,10 +438,10 @@ inline cv::Mat load_depth_image(const std::string &path)
     }
 
     std::ifstream inp{path, std::ios_base::openmode::_S_bin | std::ios_base::openmode::_S_ate};
-    std::ifstream::pos_type _filesize = inp.tellg();
+    std::ifstream::pos_type _filesize = inp.tellg() + (std::ifstream::pos_type) 1;
     inp.seekg(0, std::ios::beg);
 
-    std::vector<char> dat{(int) _filesize, std::allocator<char>{}};
+    std::vector<char> dat{(std::vector<char>::size_type) _filesize, std::allocator<char>{}};
     inp.read(dat.data(), _filesize);
     inp.close();
 
@@ -463,11 +463,6 @@ inline cv::Mat load_depth_image(const std::string &path)
     }
 
     return mat;
-}
-
-inline cv::Mat generate_2d_interpolated_noise(const int width, const int height)
-{
-    //cv::Mat 
 }
 
 #endif //DEPTHCAMERA_UTILS_HPP
