@@ -48,14 +48,14 @@ public:
 
     bool push(cv::Mat &&matrix) {
         std::lock_guard<std::mutex> lock(m_input.mutex);
-        bool override = false;
+        bool already_occupied = false;
         if (m_input.is_new) {
             clog(warn) << this->get_id() << ": Input Matrix provided while one is in queue! - Worker too slow?" << std::endl;
-            override = true;
+            already_occupied = true;
         }
         m_input.matrix = std::move(matrix);
         m_input.is_new = true;
-        return override;
+        return already_occupied;
     }
 
     cv::Mat &&pop() {

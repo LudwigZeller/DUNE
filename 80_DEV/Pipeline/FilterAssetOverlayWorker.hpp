@@ -17,9 +17,7 @@ private:
 public:
     AssetOverlayWorker(std::string id, Asset_Type _asset_type): Worker{std::move(id), MatIOType::CHAR_8, MatIOType::CHAR_8},
         asset_type(_asset_type)
-    {
-        clog(info) << id << " initialized!" << std::endl;
-    }
+    { /* No further construction required */ }
 
 protected:
     void start_up() override

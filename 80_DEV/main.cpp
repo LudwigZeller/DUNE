@@ -95,65 +95,7 @@ int main(int argc, char **argv)
     std::srand((unsigned)std::time(nullptr));
     std::cout << "Starting DepthCamera, running in " << std::this_thread::get_id() << std::endl;
 
-    cv::Mat test_mat{cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_16U};
-    {
-        const short m_disc_start = 1150;
-        const short m_disc_end = 1350;
-        const short m_lin_steps = DISCRETE_STEPS;
-
-        siv::PerlinNoise::seed_type seed = (unsigned) std::rand();
-        siv::PerlinNoise perlin{seed};
-
-        /*const double downscale_filter[16] = {
-            1.00, 1.000, 0.999, 0.998,
-            0.996, 0.993, 0.995, 0.999,
-            0.997, 0.995, 0.995, 0.998,
-            0.9991, 0.9992, 0.9993, 1.00
-        };*/
-
-        const double downscale_filter[16] = {
-            1.00, 1.00, 0.99, 0.99,
-            0.99, 0.99, 0.99, 0.99,
-            0.99, 0.991, 0.991, 0.991,
-            0.992, 0.992, 0.992, 0.992
-        };
-        
-        cv::Mat floatpix{cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_32F};
-        floatpix.forEach<float>([&](float &pixel, const int *pos)
-        {
-            float val = perlin.octave2D_01(0.002 * pos[0], 0.002 * pos[1], 4);
-            pixel = val * 16.0 + 1;
-            //pixel = m_disc_end - discr * ((m_disc_end - m_disc_start) / m_lin_steps);
-        });
-
-        double integr_vol = 0.0;
-        for(int y = 0; y < STREAM_HEIGHT; y++)
-            for(int x = 0; x < STREAM_WIDTH; x++)
-            {
-                integr_vol += floatpix.at<float>(y,x);
-                test_mat.at<short>(y,x) = (short) floatpix.at<float>(y,x);
-            }
-
-        while(integr_vol < TARGET_VOLUME_LOWER || integr_vol > TARGET_VOLUME_UPPER)
-        {
-            bool b = integr_vol < TARGET_VOLUME_LOWER;
-            integr_vol = 0.0;
-
-            for(int y = 0; y < STREAM_HEIGHT; y++)
-                for(int x = 0; x < STREAM_WIDTH; x++)
-                {
-                    float &val = floatpix.at<float>(y,x);
-                    val = b ? (val / downscale_filter[(int) val]) : (val * downscale_filter[(int) val]);
-                    integr_vol += test_mat.at<short>(y,x) = (short) val;
-                }
-            
-            clog(warn) << "integr_vol: " << (int) integr_vol << " Target: " << TARGET_VOLUME << std::endl;
-        }
-
-        test_mat.convertTo(test_mat, CV_16U, -13.3333333, 1350);
-    }
-
-    Provider *camera_provider = new Test_Provider{"Camera_Provider", test_mat};
+    Provider *camera_provider = new CameraProvider{"Camera_Provider"};
 
     //! Temp
     Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
@@ -168,6 +110,7 @@ int main(int argc, char **argv)
     Filter::TemporalWorker temporal_worker{"Filter_Temporal_Worker"};
     Filter::ColorizeWorker colorize_worker{"Filter_Colorize_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::DEFAULT};
     Filter::ColorizeWorker diff_colorize_worker{"Filter_Colorize_Diff_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::DIFFERENCE};
+    Filter::ColorizeWorker perlin_colorize_worker{"Filter_Colorize_Perlin_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::PERLIN};
     Filter::LineWorker line_worker{"Filter_Line_Worker"};
     Filter::InterpolatorWorker interpolator_worker{"Filter_Interpolator_Worker"};
     //> temp > Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
@@ -178,10 +121,10 @@ int main(int argc, char **argv)
     Filter::DifferenceWorker difference_worker{"Filter_Difference_Worker"};
     Filter::StripeWorker stripe_worker{"Filter_Stripe_Worker"};
     CalibWorker calib_worker{"Calib_Worker"};
-    TranslatorWorker translator_worker{"Translator_Worker", true};
+    TranslatorWorker translator_worker{"Translator_Worker"};
     Filter::VisualCutWorker visual_cut_worker{"Visual_Cut_Worker"};
 
-    Filter::PerlinWorker perlin_worker{"Perlin_Worker"};
+    Filter::PerlinWorker perlin_worker{"Perlin_Worker", false};
     Filter::DifferenceWorker perlin_difference_worker{"Filter_Perlin_Difference_Worker", true};
 
     Pipeline pipeline_minecraft{camera_provider};
@@ -220,7 +163,7 @@ int main(int argc, char **argv)
     pipeline_difference.push_worker(&visual_cut_worker);
     pipeline_difference.push_worker(&temporal_worker);
     pipeline_difference.push_worker(&difference_worker);
-    pipeline_difference.push_worker(&colorize_worker);
+    pipeline_difference.push_worker(&diff_colorize_worker);
     pipeline_difference.push_worker(&interpolator_worker);
     pipeline_difference.push_worker(&window_worker);
 
@@ -241,7 +184,7 @@ int main(int argc, char **argv)
     pipeline_perlin.push_worker(&visual_cut_worker);
     pipeline_perlin.push_worker(&temporal_worker);
     pipeline_perlin.push_worker(&perlin_difference_worker);
-    pipeline_perlin.push_worker(&diff_colorize_worker);
+    pipeline_perlin.push_worker(&perlin_colorize_worker);
     pipeline_perlin.push_worker(&interpolator_worker);
     pipeline_perlin.push_worker(&window_worker);
 
@@ -279,6 +222,7 @@ int main(int argc, char **argv)
         filter = new_filter;
 
         clog(info) << "Received new HTTP Data - Initiating Pipeline Switch!" << std::endl;
+        // if(new_filter.is_filter == true) { //< Hier bitte ein zweites flag erstellen dass hier ein conditional zwischen "neuer filter" und "perlin settings" unterscheiden kann
         pipeline_minecraft.stop();
         pipeline_smooth.stop();
         pipeline_difference.stop();

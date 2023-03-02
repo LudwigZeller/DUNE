@@ -86,6 +86,7 @@ public:
         PRIDE = 1,
         BEACH = 2,
         DIFFERENCE = 3,
+        PERLIN = 4
     };
 
 protected:
@@ -105,6 +106,9 @@ public:
             case PRIDE:
                 index_ptr = pride_index;
             break;
+            case DIFFERENCE:
+                index_ptr = difference_index;
+            break;
             default:
                 index_ptr = col_index;
             break;
@@ -116,7 +120,7 @@ protected:
 
     void start_up() override
     {
-        if(colorize_type == DIFFERENCE)
+        if(colorize_type == PERLIN)
         {
             dat = 0;
             index_ptr = col_index;
@@ -125,7 +129,7 @@ protected:
 
     void work() override
     {
-        if(colorize_type == DIFFERENCE && dat < 30 + TEMPORAL_BUFFER_LENGTH)
+        if(colorize_type == PERLIN && dat < 30 + TEMPORAL_BUFFER_LENGTH)
         {
             dat++;
             index_ptr = (dat < 30 + TEMPORAL_BUFFER_LENGTH) ? col_index : difference_index;
@@ -139,6 +143,11 @@ protected:
             pixel = index_ptr[c & ~LINE_MASK];
             pixel *= 1.0 - 0.5 * ((LINE_MASK & c) > 0);
         });
+
+        //if(colorize_type == PERLIN || colorize_type == DIFFERENCE)
+        //{
+        //    //cv::putText()
+        //}
     }
 
 };

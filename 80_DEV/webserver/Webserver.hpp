@@ -20,7 +20,7 @@
 
 namespace Data {
     enum class Filter {
-        NORMAL, BLOCKCRAFT, DIFFERENCE, STRIPE, PERLIN
+        NORMAL, BLOCKCRAFT, DIFFERENCE, STRIPE, PERLIN, PERLIN_REG, PERLIN_SHOW
     };
     enum class Simulation {
         NONE, GAME
@@ -34,7 +34,9 @@ namespace Data {
             {"BLOCKCRAFT", Filter::BLOCKCRAFT},
             {"DIFFERENCE", Filter::DIFFERENCE},
             {"STRIPE",     Filter::STRIPE},
-            {"PERLIN",     Filter::PERLIN}
+            {"PERLIN",     Filter::PERLIN},
+            {"PERLIN_REG", Filter::PERLIN_REG},
+            {"PERLIN_SHOW",Filter::PERLIN_SHOW},
     };
     inline const std::map<std::string, Simulation> DictionarySimulation = {
             {"NONE", Simulation::NONE},

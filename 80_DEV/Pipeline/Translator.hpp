@@ -5,15 +5,9 @@
 
 class TranslatorWorker : public Worker
 {
-private:
-    //cv::Mat m_tmp;
-    const bool ptf;
-
 public:
-    explicit TranslatorWorker(std::string id, const bool ptf): Worker(std::move(id), MatIOType::CHAR_8, MatIOType::CHAR_8), ptf(ptf)
-    {
-        clog(info) << id << " initialized!" << std::endl;
-    }
+    explicit TranslatorWorker(std::string id): Worker(std::move(id), MatIOType::CHAR_8, MatIOType::CHAR_8)
+    { /* No further construction required */ }
 
 protected:
     inline friend cv::Point2i operator-(const cv::Point2i &c) {
