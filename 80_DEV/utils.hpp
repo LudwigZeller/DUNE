@@ -390,4 +390,79 @@ inline bool file_exists(const std::string path)
     matrix *= 0.001; \
 } 
 
+inline void save_depth_image(std::string path, cv::Mat mat)
+{
+    if(file_exists(path + ".res"))
+    {
+        int check = 1;
+        while(file_exists(path + "_(" + std::to_string(check) + ").res")) check++;
+        path = path + "_(" + std::to_string(check) + ")";
+    }
+
+    std::ofstream outp{path + ".res", std::ios_base::openmode::_S_bin};
+    std::vector<uchar> dat{12UL + (unsigned long)((mat.cols * mat.rows) >> 1) + (unsigned long)((mat.cols * mat.rows) & 1), std::allocator<char>{}};
+
+    memcpy(dat.data(), "DUNE", 4);
+    memcpy(dat.data() + 4, &mat.cols, 4);
+    memcpy(dat.data() + 8, &mat.rows, 4);
+ 
+    uchar buf = 0;
+    uchar *place = dat.data() + 12;
+    int ct = 0;
+
+    for(int y = 0; y < mat.rows; y++)
+    {
+        for(int x = 0; x < mat.cols; x++)
+        {
+            buf |= mat.at<uchar>(y,x) << (ct * 4);
+            if(++ct > 1)
+            {
+                ct = 0;
+                *(place++) = buf;
+                buf = 0;
+            }
+        }
+    }
+    if(buf)
+        *place = buf;
+
+    outp.write((const char*) dat.data(), dat.size());
+    outp.close();
+}
+
+inline cv::Mat load_depth_image(const std::string &path)
+{
+    if(!file_exists(path))
+    {
+        return {};
+    }
+
+    std::ifstream inp{path, std::ios_base::openmode::_S_bin | std::ios_base::openmode::_S_ate};
+    std::ifstream::pos_type _filesize = inp.tellg() + (std::ifstream::pos_type) 1;
+    inp.seekg(0, std::ios::beg);
+
+    std::vector<char> dat{(std::vector<char>::size_type) _filesize, std::allocator<char>{}};
+    inp.read(dat.data(), _filesize);
+    inp.close();
+
+    if(memcmp(dat.data(), "DUNE", 4) != 0)
+        return {};
+
+    cv::Size size{};
+    memcpy(&size.width, dat.data() + 4, 4);
+    memcpy(&size.height, dat.data() + 8, 4);
+
+    cv::Mat mat{size, CV_8U};
+    uchar *ptr = mat.ptr<uchar>();
+
+    for(int i = 0; i < size.width * size.height; i++)
+    {
+        int idx = i >> 1;
+        int ct = i & 1;
+        ptr[i] = 0x0F & (dat[idx] >> (ct ? 4 : 0));
+    }
+
+    return mat;
+}
+
 #endif //DEPTHCAMERA_UTILS_HPP

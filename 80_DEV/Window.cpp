@@ -189,7 +189,7 @@ void Window::onKeyCustom(GLFWwindow *window, int key, int scancode, int action, 
     }
     else if(key == GLFW_KEY_C && action == GLFW_RELEASE)
     {
-        this->docapture = true;
+        this->fct_ptr();
     }
     return;
 translation_scalar_jmp:

@@ -26,14 +26,14 @@ public:
     ResourcePlacementWorker(std::string _id, const Asset_Type _asset_type, const int width, const int height, const char *data): Worker(std::move(_id), MatIOType::VEC_3_CHAR_8, MatIOType::VEC_3_CHAR_8),
         asset_type(_asset_type)
     {
-        clog(info) << this->get_id() << " initialized!" << std::endl;
+        
         tree = assetToMat(width, height, data);
 
         for(int i = 0; i < get_kernel(_asset_type).size(); i++)
         {
             int x = (std::rand() % (STREAM_WIDTH - 2*width)) + width;
             int y = (std::rand() % (STREAM_HEIGHT - 2*height)) + height;
-        clog(err) << get_kernel(_asset_type).size() << std::endl;
+        //clog(err) << get_kernel(_asset_type).size() << std::endl;
             get_kernel(_asset_type)[i] = aRTE_point_bool{.r = cv::Rect{
                 x, y,
                 width, height

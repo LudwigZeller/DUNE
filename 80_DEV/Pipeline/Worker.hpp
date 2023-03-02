@@ -12,6 +12,8 @@
 #include <utility>
 #include <atomic>
 #include "../utils.hpp"
+#include "../config.hpp"
+#include "../matdef.hpp"
 #include "MatIO.hpp"
 
 class Worker {
@@ -48,11 +50,11 @@ public:
      * @param input Input matrix type
      * @param output Output matrix type
      */
-    explicit Worker(std::string id, MatIOType::MatIOType_t input, MatIOType::MatIOType_t output) : m_id(std::move(id)), m_input_type(input), m_output_type(output) {
-        clog(info) << "Constructed " << m_id << std::endl;
-    };
+    explicit Worker(std::string id, MatIOType::MatIOType_t input, MatIOType::MatIOType_t output) : m_id(std::move(id)), m_input_type(input), m_output_type(output)
+    { /* No required extra code */ }
 
-    virtual ~Worker() {
+    virtual ~Worker()
+    {
         this->stop();
     };
 
@@ -64,14 +66,14 @@ public:
      */
     bool push(cv::Mat &&matrix) {
         std::lock_guard<std::mutex> lock(m_input.mutex);
-        bool override = false;
+        bool already_occupied = false;
         if (m_input.is_new) {
             clog(warn) << this->get_id() << ": Input Matrix provided while one is in queue! - Worker too slow?" << std::endl;
-            override = true;
+            already_occupied = true;
         }
         m_input.matrix = std::move(matrix);
         m_input.is_new = true;
-        return override;
+        return already_occupied;
     }
 
     /**
@@ -115,7 +117,6 @@ public:
                 }
             }
         }};
-        clog(info) << "Started " << this->get_id() << "!" << std::endl;
         return true;
     }
 
@@ -127,7 +128,6 @@ public:
         if (!m_running) return false;
         m_running = false;
         m_thread.join();
-        clog(info) << "Stopped " << this->get_id() << "!" << std::endl;
         return true;
     }
 

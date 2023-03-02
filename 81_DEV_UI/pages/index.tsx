@@ -9,6 +9,7 @@ export default function Home() {
         BLOCKCRAFT = "BLOCKCRAFT",
         DIFFERENCE = "DIFFERENCE",
         STRIPE = "STRIPE",
+        PERLIN = "PERLIN",
     }
 
     let [activeFilter, setActiveFilter] = useState(FILTER.NORMAL);
@@ -43,6 +44,10 @@ export default function Home() {
                 <Button active={activeFilter == FILTER.DIFFERENCE} onClick={() => onClick(FILTER.DIFFERENCE)}
                         text={"Difference"}
                         subtext={"Das erste aufgenommene Bild wird als Vergleich verwendet. Unterschiede am Sand werden angezeigt."}
+                        src={"/button_test.png"}/>
+                <Button active={activeFilter == FILTER.PERLIN} onClick={() => onClick(FILTER.PERLIN)}
+                        text={"Perlin"}
+                        subtext={"Ein Zufallsgenerator erzeugt eine Vorgabe, die man nachbauen kann."}
                         src={"/button_test.png"}/>
             </main>
         </>

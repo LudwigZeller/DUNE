@@ -58,19 +58,23 @@
 #include "Pipeline/Pipeline.hpp"
 #include "Pipeline/WindowWorker.hpp"
 #include "Pipeline/CameraProvider.hpp"
+#include "Pipeline/Test_Provider.hpp"
 #include "Pipeline/FilterColorizeWorker.hpp"
 #include "Pipeline/FilterTemporalWorker.hpp"
 #include "Pipeline/FilterLineWorker.hpp"
 #include "Pipeline/FilterInterpolatorWorker.hpp"
 #include "Pipeline/FilterDiscreticiser.hpp"
 #include "Pipeline/FilterScaleWorker.hpp"
-#include "Pipeline/FunnyW.hpp"
+#include "Pipeline/ResourcePlacementWorker.hpp"
 #include "Pipeline/FilterAssetOverlayWorker.hpp"
 #include "Pipeline/Calib.hpp"
 #include "Pipeline/Translator.hpp"
 #include "Pipeline/FilterDifferenceWorker.hpp"
 #include "Pipeline/FilterStripeWorker.hpp"
 #include "Pipeline/VisualCutWorker.hpp"
+#include "Pipeline/GameLogicWorker.hpp"
+#include "Pipeline/GameDrawWorker.hpp"
+#include "Pipeline/FilterPerlinWorker.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -90,27 +94,29 @@ volatile bool stay_in_calib = true;
 
 int main(int argc, char **argv)
 {
-    std::regex _mog{"-q([-0-9]+),([-0-9]+),([0-9.]+),([0-9.]+)"};
-    std::smatch smat;
-
-    for (int i = 1; i < argc; i++)
-    {
-        std::string l{argv[i]};
-        if (std::regex_search(l, smat, _mog))
-        {
-            translation_vec.x = std::atoi(smat[1].str().c_str());
-            translation_vec.y = std::atoi(smat[2].str().c_str());
-            scalar_kernel.width = (int)(std::atof(smat[3].str().c_str()) * STREAM_WIDTH);
-            scalar_kernel.height = (int)(std::atof(smat[4].str().c_str()) * STREAM_HEIGHT);
-
-            clog(warn) << "Value take-over: \ntv.x = " << translation_vec.x << "\ntv.y = " << translation_vec.y << "\nsk.w = " << scalar_kernel.width << "\nsk.h = " << scalar_kernel.height << std::endl;
-        }
-    }
-
     std::srand((unsigned)std::time(nullptr));
     std::cout << "Starting DepthCamera, running in " << std::this_thread::get_id() << std::endl;
-    CameraProvider camera_provider{"Camera_Provider"};
-    // Test_Provider camera_provider{"Test_Provider"};
+
+    Provider *camera_provider = new CameraProvider{"Camera_Provider"};
+
+    //! Temp
+    Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
+
+    if(argc > 1)
+    {
+        cv::Mat mat = load_depth_image(argv[1]);
+        if(!mat.empty())
+        {
+            camera_provider->stop();
+            delete camera_provider;
+            const short m_disc_start = 1150;
+            const short m_disc_end = 1350;
+            const short m_lin_steps = DISCRETE_STEPS;
+            mat.convertTo(mat, CV_16U, -13.33333333, 1350);
+
+            camera_provider = new Test_Provider{"Test_Provider", mat};
+        }
+    }
 
     Window window{"DUNE", MONITOR_BEAMER_FIX};
 #if WEB_UI
@@ -121,24 +127,47 @@ int main(int argc, char **argv)
     WindowWorker window_worker{"Window_Worker", &window};
     Filter::TemporalWorker temporal_worker{"Filter_Temporal_Worker"};
     Filter::ColorizeWorker colorize_worker{"Filter_Colorize_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::DEFAULT};
-    Filter::ColorizeWorker rgbg_colorize_worker{"Filter_Colorize_RGBG_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::BEACH};
+    Filter::ColorizeWorker diff_colorize_worker{"Filter_Colorize_Diff_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::DIFFERENCE};
+    Filter::ColorizeWorker perlin_colorize_worker{"Filter_Colorize_Perlin_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::PERLIN};
     Filter::LineWorker line_worker{"Filter_Line_Worker"};
     Filter::InterpolatorWorker interpolator_worker{"Filter_Interpolator_Worker"};
-    Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
+    //> temp > Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
+    discreticiser_worker.bind_to_window(window);
     Filter::ScaleWorker scale_worker{"Filter_Scale_Worker"};
     Filter::ResourcePlacementWorker resource_placement{"Resource_Placement_Worker", BC_Trees, tree_asmak_WIDTH, tree_asmak_HEIGHT, tree_asmak_DATA};
     Filter::AssetOverlayWorker asset_overlay{"Asset_Overlay_Filter", BC_Trees};
     Filter::DifferenceWorker difference_worker{"Filter_Difference_Worker"};
     Filter::StripeWorker stripe_worker{"Filter_Stripe_Worker"};
     CalibWorker calib_worker{"Calib_Worker"};
-    TranslatorWorker translator_worker{"Translator_Worker", true};
+    TranslatorWorker translator_worker{"Translator_Worker"};
     Filter::VisualCutWorker visual_cut_worker{"Visual_Cut_Worker"};
+    Simulation::GameLogicWorker game_logic_worker{"Game_Logic_Worker"};
+    Simulation::GameDrawWorker game_draw_worker{"Game_Draw_Worker", &game_logic_worker};
 
-    Pipeline pipeline_minecraft{&camera_provider};
-    Pipeline pipeline_smooth{&camera_provider};
-    Pipeline pipeline_difference{&camera_provider};
-    Pipeline pipeline_stripe{&camera_provider};
-    Pipeline pipeline_calibration{&camera_provider};
+    Filter::PerlinWorker perlin_worker{"Perlin_Worker", false};
+    Filter::DifferenceWorker perlin_difference_worker{"Filter_Perlin_Difference_Worker", true};
+
+    Pipeline pipeline_minecraft{camera_provider};
+    Pipeline pipeline_smooth{camera_provider};
+    Pipeline pipeline_difference{camera_provider};
+    Pipeline pipeline_stripe{camera_provider};
+    Pipeline pipeline_perlin{camera_provider};
+
+#if DO_CALIB
+    Pipeline pipeline_calibration{camera_provider};
+#endif
+
+    pipeline_smooth.push_worker(&discreticiser_worker);
+    pipeline_smooth.push_worker(&scale_worker);
+    pipeline_smooth.push_worker(&translator_worker);
+    pipeline_smooth.push_worker(&visual_cut_worker);
+    pipeline_smooth.push_worker(&temporal_worker);
+    pipeline_smooth.push_worker(&game_logic_worker);
+    pipeline_smooth.push_worker(&colorize_worker);
+    pipeline_smooth.push_worker(&interpolator_worker);
+    pipeline_smooth.push_worker(&game_draw_worker);
+    pipeline_smooth.push_worker(&window_worker);
+
 
     pipeline_minecraft.push_worker(&discreticiser_worker);
     pipeline_minecraft.push_worker(&scale_worker);
@@ -151,22 +180,13 @@ int main(int argc, char **argv)
     pipeline_minecraft.push_worker(&resource_placement);
     pipeline_minecraft.push_worker(&window_worker);
 
-    pipeline_smooth.push_worker(&discreticiser_worker);
-    pipeline_smooth.push_worker(&scale_worker);
-    pipeline_smooth.push_worker(&translator_worker);
-    pipeline_smooth.push_worker(&visual_cut_worker);
-    pipeline_smooth.push_worker(&temporal_worker);
-    pipeline_smooth.push_worker(&colorize_worker);
-    pipeline_smooth.push_worker(&interpolator_worker);
-    pipeline_smooth.push_worker(&window_worker);
-
     pipeline_difference.push_worker(&discreticiser_worker);
     pipeline_difference.push_worker(&scale_worker);
     pipeline_difference.push_worker(&translator_worker);
     pipeline_difference.push_worker(&visual_cut_worker);
     pipeline_difference.push_worker(&temporal_worker);
     pipeline_difference.push_worker(&difference_worker);
-    pipeline_difference.push_worker(&colorize_worker);
+    pipeline_difference.push_worker(&diff_colorize_worker);
     pipeline_difference.push_worker(&interpolator_worker);
     pipeline_difference.push_worker(&window_worker);
 
@@ -180,11 +200,23 @@ int main(int argc, char **argv)
     pipeline_stripe.push_worker(&interpolator_worker);
     pipeline_stripe.push_worker(&window_worker);
 
+    pipeline_perlin.push_worker(&perlin_worker);
+    pipeline_perlin.push_worker(&discreticiser_worker);
+    pipeline_perlin.push_worker(&scale_worker);
+    pipeline_perlin.push_worker(&translator_worker);
+    pipeline_perlin.push_worker(&visual_cut_worker);
+    pipeline_perlin.push_worker(&temporal_worker);
+    pipeline_perlin.push_worker(&perlin_difference_worker);
+    pipeline_perlin.push_worker(&perlin_colorize_worker);
+    pipeline_perlin.push_worker(&interpolator_worker);
+    pipeline_perlin.push_worker(&window_worker);
+
+
+#if DO_CALIB
     pipeline_calibration.push_worker(&discreticiser_worker);
     pipeline_calibration.push_worker(&calib_worker);
     pipeline_calibration.push_worker(&window_worker);
 
-#if DO_CALIB
     pipeline_calibration.start();
     while (stay_in_calib && window
 #if WEB_UI
@@ -213,11 +245,12 @@ int main(int argc, char **argv)
         filter = new_filter;
 
         clog(info) << "Received new HTTP Data - Initiating Pipeline Switch!" << std::endl;
+        // if(new_filter.is_filter == true) { //< Hier bitte ein zweites flag erstellen dass hier ein conditional zwischen "neuer filter" und "perlin settings" unterscheiden kann
         pipeline_minecraft.stop();
         pipeline_smooth.stop();
         pipeline_difference.stop();
         pipeline_stripe.stop();
-        difference_worker.reset_save();
+        pipeline_perlin.stop();
         clog(info) << "Switching to -> ";
         switch (filter)
         {
@@ -236,6 +269,10 @@ int main(int argc, char **argv)
         case Data::Filter::STRIPE:
             clog(info) << "STRIPE FILTER PIPELINE" << std::endl;
             pipeline_stripe.start();
+            break;
+        case Data::Filter::PERLIN:
+            clog(info) << "PERLIN FILTER PIPELINE" << std::endl;
+            pipeline_perlin.start();
             break;
         }
     }
@@ -295,4 +332,6 @@ int main(int argc, char **argv)
     while (window || twindow)
         ;
 #endif
+    camera_provider->stop();
+    delete camera_provider;
 }

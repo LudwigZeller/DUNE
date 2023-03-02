@@ -20,9 +20,7 @@ private:
 
 public:
     InterpolatorWorker(std::string id): Worker{std::move(id), MatIOType::VEC_3_CHAR_8, MatIOType::VEC_3_CHAR_8}
-    {
-        clog(info) << this->get_id() << " initialized!" << std::endl;
-    }
+    { /* No extra construction required */ }
 
 protected:
     void start_up() override
