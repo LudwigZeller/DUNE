@@ -67,7 +67,6 @@ public:
                 }
             }
         }*/
-        clog(info) << id << " initialized!" << std::endl;
     }
 
 protected:

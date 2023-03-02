@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Worker.hpp"
+#include "../Window.hpp"
 
 /**
  * @brief Project's Filter namespace
@@ -19,11 +20,15 @@ protected:
     const short m_disc_end = 1350;
     const short m_lin_steps = DISCRETE_STEPS;
     cv::Mat tmp;
+    bool do_capture = false;
 
 public:
     explicit DiscreticiserWorker(std::string id): Worker(std::move(id), MatIOType::SHORT_16, MatIOType::CHAR_8)
+    { /* No extra construction required */ }
+
+    void bind_to_window(Window &w)
     {
-        clog(info) << this->get_id() << " initialized!" << std::endl;
+        w.bind_capture_adress([this](){this->capture();});
     }
 
 protected:
@@ -42,12 +47,21 @@ protected:
         this->m_work_matrix = cv::Mat(tmp.size(), CV_8U);
 
         this->m_work_matrix.forEach<uchar>([&](uchar &c, const int *pos){
-            #define ___min_(a,b) (((a) < (b)) ? (a) : (b))
-            #define ___max_(a,b) (((a) < (b)) ? (b) : (a))
             double t = _scalc2 * (this->tmp.at<short>(pos)- m_disc_start);
             c = (DISCRETE_STEPS - 1) - (uchar) ___max_(___min_(t + 1, this->m_lin_steps - 1), 0);
             //c = ~(~(1 << c) + 1);
         });
+
+        if(do_capture)
+        {
+            do_capture = false;
+            save_depth_image("output", this->m_work_matrix);
+        }
+    }
+
+    void capture()
+    {
+        do_capture = true;
     }
 };
 

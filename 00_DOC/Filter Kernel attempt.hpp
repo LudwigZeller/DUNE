@@ -71,9 +71,7 @@ protected:
 
 public:
     explicit LineWorker(std::string id): Worker{std::move(id), MatIOType::VEC_4_CHAR_8, MatIOType::VEC_4_CHAR_8}
-    {
-        clog(info) << this->get_id() << " initialized!" << std::endl;
-    }
+    { /* No extra construction required */ }
 
     void start_up() override
     {

@@ -10,31 +10,22 @@
 #include <thread>
 #include <utility>
 
-#include "../../capture-depth-2.dres"
-
 class Test_Provider : public Provider {
 private:
-    short *m_cursed_dat;
+    cv::Mat saved_mat;
 public:
-    explicit Test_Provider(std::string id) : Provider(std::move(id)) {
-        short cursed_temp[] = CAPTURE_DEPTH_2_DATA;
-        m_cursed_dat = new short[CAPTURE_DEPTH_2_WIDTH * CAPTURE_DEPTH_2_HEIGHT];
-        memcpy(m_cursed_dat, cursed_temp, CAPTURE_DEPTH_2_WIDTH * CAPTURE_DEPTH_2_HEIGHT);
-    };
-
-    ~Test_Provider()
+    explicit Test_Provider(std::string id, cv::Mat &dat) : Provider(std::move(id), MatIOType::SHORT_16)
     {
-        delete[] m_cursed_dat;
+        saved_mat = std::move(dat);
     }
 
-    void work() override {
-        using namespace std::chrono_literals;
-        std::this_thread::sleep_for(66ms);
-        //m_work_matrix = std::move(assetToMat(CAPTURE_0_WIDTH,CAPTURE_0_HEIGHT,CAPTURE_0_DATA));
-        m_work_matrix = std::move(assetToMatDepth(CAPTURE_DEPTH_2_WIDTH, CAPTURE_DEPTH_2_HEIGHT, m_cursed_dat));
-        macro_matrixToMeters(m_work_matrix);
-        //clog(info) << get_id() <<" provided Matrix!" << std::endl;
-    };
+    void work() override
+    {
+        const static std::chrono::milliseconds dur{67};
+        auto start = std::chrono::steady_clock::now();
+        this->m_work_matrix = saved_mat.clone();
+        while(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start) < dur);
+    }
 };
 
 #endif //DUNE_PIPELINE_TEST_WORKER_PROVIDER_HPP

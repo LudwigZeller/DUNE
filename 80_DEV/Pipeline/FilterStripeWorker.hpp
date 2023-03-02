@@ -15,9 +15,7 @@ class StripeWorker : public Worker
 {
 public:
     explicit StripeWorker(std::string id): Worker(std::move(id), MatIOType::CHAR_8, MatIOType::CHAR_8)
-    {
-        clog(info) << this->get_id() << " initialized!" << std::endl;
-    }
+    { /* No extra construction required */ }
 
 protected:
     void start_up() override
@@ -32,7 +30,7 @@ protected:
         {
             pixel = (pixel > 0 && pixel < (DISCRETE_STEPS - 1)) ? (
                 (pixel % 2) ? (
-                    ((__abs(pos[0] - pos[1]) / STRIPE_WIDENESS) % 2) ? pixel : (pixel - 1)
+                    ((___abs_(pos[0] - pos[1]) / STRIPE_WIDENESS) % 2) ? pixel : (pixel - 1)
                 ):(
                     (((pos[0] + pos[1]) / STRIPE_WIDENESS) % 2) ? pixel : (pixel - 1)
                 )
