@@ -459,7 +459,7 @@ inline cv::Mat load_depth_image(const std::string &path)
     {
         int idx = i >> 1;
         int ct = i & 1;
-        ptr[i] = 0x0F & (dat[idx] >> ct);
+        ptr[i] = 0x0F & (dat[idx] >> (ct ? 4 : 0));
     }
 
     return mat;
