@@ -75,18 +75,9 @@ void Pipeline::push_worker(Worker *worker) {
         worker->start();
 }
 
-Provider *Pipeline::replace_provider(Provider *provider) {
-    return nullptr;
-}
-
-void Pipeline::insert_worker_before(std::string id, Worker *worker) {
-
-}
-
-Worker *Pipeline::remove_worker(std::string id) {
-    return nullptr;
-}
-
 std::vector<std::string> Pipeline::get_pipeline() {
-    return std::vector<std::string>();
+    std::lock_guard<std::mutex> lock(m_pipeline_mutex);
+    std::vector<std::string> ids{m_provider->get_id()};
+    for (auto worker: m_pipeline) { ids.push_back(worker->get_id()); }
+    return ids;
 }

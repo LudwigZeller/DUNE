@@ -12,6 +12,10 @@
 #include <utility>
 #include "../utils.hpp"
 
+/**
+ * The starting piece of the pipeline.
+ * Produces matrices for the pipeline to work on
+ */
 class Provider {
 private:
     struct SharedMatrix {
@@ -28,11 +32,19 @@ protected:
     cv::Mat m_work_matrix;
     std::string m_id;
 
+    /**
+     * Concurrent producer function, abstracted to be easy to use
+     */
     virtual void work() = 0;
 
 public:
     const MatIOType::MatIOType_t m_output_type;
 
+    /**
+     * Constructs Provider with ID and sets production matrix type
+     * @param id Id of the Producer
+     * @param output Output matrix type
+     */
     explicit Provider(std::string id, MatIOType::MatIOType_t output) : m_id(std::move(id)), m_output_type(output) {
         clog(info) << "Constructed " << m_id << std::endl;
     };
@@ -41,12 +53,20 @@ public:
         this->stop();
     };
 
+    /**
+     * Pops the produced matrix from the provider
+     * @return R-Value finished matrix
+     */
     cv::Mat &&pop() {
         std::lock_guard<std::mutex> lock(m_output.mutex);
         m_output.is_new = false;
         return std::move(m_output.matrix);
     }
 
+    /**
+     * Starts the work thread of the provider
+     * @return If the worker was already running
+     */
     bool start() {
         if (m_running) return false;
         m_running = true;
@@ -68,6 +88,10 @@ public:
         return true;
     }
 
+    /**
+     * Joins the work thead of the provider
+     * @return If the provider was already stopped
+     */
     bool stop() {
         if (!m_running) return false;
         m_running = false;
@@ -76,6 +100,10 @@ public:
         return true;
     }
 
+    /**
+     * Gets ID
+     * @return Provider ID
+     */
     [[nodiscard]] std::string get_id() const { return m_id; }
 };
 

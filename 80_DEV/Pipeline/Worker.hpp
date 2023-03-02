@@ -33,11 +33,23 @@ protected:
     cv::Mat m_work_matrix;
     std::string m_id;
 
+    /**
+     * Concurrent worker function, abstracted to be easy to use
+     */
     virtual void work() = 0;
+    /**
+     * Runs on the start of the Worker, runs on the calling thread
+     */
     virtual void start_up() = 0;
 public:
     const MatIOType::MatIOType_t m_input_type, m_output_type;
 
+    /**
+     * Constructs Worker with ID and sets Matrix IO types
+     * @param id ID of the Worker
+     * @param input Input matrix type
+     * @param output Output matrix type
+     */
     explicit Worker(std::string id, MatIOType::MatIOType_t input, MatIOType::MatIOType_t output) : m_id(std::move(id)), m_input_type(input), m_output_type(output)
     { /* No required extra code */ }
 
@@ -46,6 +58,12 @@ public:
         this->stop();
     };
 
+    /**
+     * Pushes a new matrix onto the Worker.
+     * Warns if Worker is overflowing
+     * @param matrix R-Value of new matrix
+     * @return If it overwrote the Matrix in Queue
+     */
     bool push(cv::Mat &&matrix) {
         std::lock_guard<std::mutex> lock(m_input.mutex);
         bool already_occupied = false;
@@ -58,12 +76,20 @@ public:
         return already_occupied;
     }
 
+    /**
+     * Pops finished Matrix of the worker
+     * @return R-Value of finished matrix
+     */
     cv::Mat &&pop() {
         std::lock_guard<std::mutex> lock(m_output.mutex);
         m_output.is_new = false;
         return std::move(m_output.matrix);
     }
 
+    /**
+     * Starts the work thread of the worker
+     * @return If the worker was already running
+     */
     bool start() {
         if (m_running) return false;
         m_running = true;
@@ -94,6 +120,10 @@ public:
         return true;
     }
 
+    /**
+     * Joins the work thread of the worker
+     * @return If the worker was already stopped
+     */
     bool stop() {
         if (!m_running) return false;
         m_running = false;
@@ -101,6 +131,10 @@ public:
         return true;
     }
 
+    /**
+     * Gets ID
+     * @return Worker ID
+     */
     [[nodiscard]] std::string get_id() const { return m_id; }
 };
 
