@@ -48,14 +48,14 @@ protected:
         aRTE_difference_sum = 0;
         if(val_linger_frame) val_linger_frame--;
         if(!val_linger_frame)
-            for(int y = 0; y < STREAM_HEIGHT; y++)
-                for(int x = 0; x < STREAM_WIDTH; x++)
+            for(int y = CUTOFF_TOP; y <= CUTOFF_BOT; y++)
+                for(int x = CUTOFF_LEFT; x <= CUTOFF_RIGHT; x++)
                 {
                     uchar &is = this->m_work_matrix.at<uchar>(y,x);
                     const uchar &be = this->m_reference.at<uchar>(y,x);
 
                     is = (be > 0 && be < DISCRETE_STEPS - 1) ? (___min_(14, ___max_(1, 7 - (signed char) is + (signed char) be))) : be;
-                    aRTE_difference_sum += is;
+                    aRTE_difference_sum += ___abs_(8 - is);
                 }
     }
 

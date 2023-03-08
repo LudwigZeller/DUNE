@@ -14,16 +14,11 @@ namespace Filter {
 */
 class VisualCutWorker : public Worker
 {
-#define BORDER_CUTOFF_TOP 23
-#define BORDER_CUTOFF_BOT 681
-#define BORDER_CUTOFF_LEFT 230
-#define BORDER_CUTOFF_RIGHT 1125
+//#define BORDER_CUTOFF_TOP 23
+//#define BORDER_CUTOFF_BOT 681
+//#define BORDER_CUTOFF_LEFT 230
+//#define BORDER_CUTOFF_RIGHT 1125
 
-#define CUTOFF_TOP 53
-#define CUTOFF_BOT 681
-#define CUTOFF_LEFT 250
-#define CUTOFF_RIGHT 1100
-#define CUTOFF_FRAME_STRENGTH 5
 private:
     cv::Mat m_cutoff_template = cv::Mat::zeros(cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_8U);
     cv::Mat m_work_storage;

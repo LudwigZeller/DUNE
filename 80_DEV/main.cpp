@@ -281,6 +281,7 @@ int main(int argc, char **argv)
     pipeline_smooth.stop();
     pipeline_difference.stop();
     pipeline_stripe.stop();
+    pipeline_perlin.stop(); 
 #else
     int state = twindow.get_dat();
     twindow.render_matrix(getCaptureIndex(state));

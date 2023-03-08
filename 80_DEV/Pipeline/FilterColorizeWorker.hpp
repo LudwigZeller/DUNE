@@ -2,6 +2,7 @@
 
 #include "Worker.hpp"
 #include <functional>
+#include "AssetRTE.hpp"
 
 const static cv::Vec3b black{0,0,0};
 const static cv::Vec3b ocean_blue{138,94,51};
@@ -61,10 +62,10 @@ const static cv::Vec3b difference_index[DISCRETE_STEPS] = {
     //black
     black,
     //below = red
-    red, red * 0.8, red * 0.65, red * 0.5, red * 0.3, red * 0.1, black,
+    red, red * 0.9, red * 0.8, red * 0.7, red * 0.5, red * 0.3, black,
     //middle = none
     //above = green
-    black, green * 0.1, green * 0.3, green * 0.5, green * 0.65, green * 0.8, green,
+    black, green * 0.3, green * 0.5, green * 0.7, green * 0.8, green * 0.9, green,
     //black
     black
 };
@@ -144,10 +145,14 @@ protected:
             pixel *= 1.0 - 0.5 * ((LINE_MASK & c) > 0);
         });
 
-        //if(colorize_type == PERLIN || colorize_type == DIFFERENCE)
-        //{
-        //    //cv::putText()
-        //}
+        if(colorize_type == PERLIN || colorize_type == DIFFERENCE)
+        {
+            double dff = TARGET_VOLUME - aRTE_difference_sum;
+            double ratio = dff / (double) (TARGET_VOLUME);
+            std::stringstream ss;
+            ss << "Gleichheit: " << ratio * 100.0 << "%" << std::flush;
+            cv::putText(this->m_work_matrix, ss.str(), cv::Point(CUTOFF_LEFT + 20, CUTOFF_BOT - 20), cv::FONT_HERSHEY_SIMPLEX, 2, white, 6);
+        }
     }
 
 };
