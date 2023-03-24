@@ -33,10 +33,10 @@ protected:
         //cv::GaussianBlur(this->m_work_matrix, this->m_work_matrix, ksize, 0, 0, cv::BorderTypes::BORDER_REPLICATE);
         //cv::blur(this->m_work_matrix, this->m_work_matrix, ksize);
         cv::Mat m1 = this->m_work_matrix(cv::Rect{
-            0,0,STREAM_WIDTH/2,STREAM_HEIGHT
+            CUTOFF_LEFT,CUTOFF_TOP,(CUTOFF_RIGHT - CUTOFF_LEFT + 1) / 2 + 1,CUTOFF_BOT - CUTOFF_TOP + 1
         });
         cv::Mat m2 = this->m_work_matrix(cv::Rect{
-            STREAM_WIDTH/2 + 1, 0, STREAM_WIDTH / 2 - 1, STREAM_HEIGHT
+            (CUTOFF_RIGHT - CUTOFF_LEFT + 1) / 2 + 1 + CUTOFF_LEFT, CUTOFF_TOP, (CUTOFF_RIGHT - CUTOFF_LEFT + 1) / 2 + 1, CUTOFF_BOT - CUTOFF_TOP + 1
         });
         std::thread t1{[&]{
             cv::medianBlur(m1,m1,5);

@@ -49,11 +49,10 @@ function(copy_directory_dll DIR)
             "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 endfunction()
 
-# MakeDLogo script
+# Asset generator script
 function(makeasset DEP WD NAM PNGNAM SRC)
-#    add_custom_target(DuneLogoMaker COMMAND bash ${PROJECT_SOURCE_DIR}/assets/MakeDLogo.bash ${PROJECT_SOURCE_DIR}/assets)
     add_custom_target(${DEP}
-        COMMAND make run name=${NAM} outputname=${NAM} targetpng=${PNGNAM} SOURCES=${SRC}
+        COMMAND make clean run name=${NAM} outputname=${NAM} targetpng=${PNGNAM} SOURCES=${SRC}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/assets/${WD}
     )
     add_dependencies(${PROJECT_NAME} ${DEP})

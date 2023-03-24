@@ -56,5 +56,11 @@
 #define TARGET_VOLUME_TOLERANCE         (0.05)           //< Discrete sand volume +/-value%
 #define TARGET_VOLUME_UPPER             (TARGET_VOLUME * (1.0 + TARGET_VOLUME_TOLERANCE))
 #define TARGET_VOLUME_LOWER             (TARGET_VOLUME * (1.0 - TARGET_VOLUME_TOLERANCE))
+
 #define TEMPORAL_BUFFER_LENGTH          (12)            //< Size for Temporal buffer
 #define PERLIN_LINGER_LENGTH            (30)            //< Amount of time that the perlin image stays on screen
+
+#define CUTOFF_TOP 53
+#define CUTOFF_BOT 681
+#define CUTOFF_LEFT 250
+#define CUTOFF_RIGHT 1100

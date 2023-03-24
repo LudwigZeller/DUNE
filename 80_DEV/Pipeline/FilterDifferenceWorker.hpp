@@ -34,28 +34,34 @@ protected:
     void start_up() override
     {
         this->save_first = true;
+        //! Statement irrelevant in normal mode
         if(linger_frame) val_linger_frame = PERLIN_LINGER_LENGTH + TEMPORAL_BUFFER_LENGTH;
     }
 
     void work() override
     {
+        //!! Statement to save the first available Frame, has secondary delay statement
+        //!! when in "Perlin mode"
         if(save_first && !(linger_frame && val_linger_frame >= PERLIN_LINGER_LENGTH))
         {
             this->save_first = false;
             this->m_reference = this->m_work_matrix.clone();
         }
 
-        aRTE_difference_sum = 0;
+        //!! Statement irrelevant in normal mode
         if(val_linger_frame) val_linger_frame--;
         if(!val_linger_frame)
+        //^^
+
             for(int y = 0; y < STREAM_HEIGHT; y++)
                 for(int x = 0; x < STREAM_WIDTH; x++)
                 {
-                    uchar &is = this->m_work_matrix.at<uchar>(y,x);
-                    const uchar &be = this->m_reference.at<uchar>(y,x);
+                    signed char &value_is = this->m_work_matrix.at<signed char>(y,x);
+                    const signed char &value_should = this->m_reference.at<signed char>(y,x);
 
-                    is = (be > 0 && be < DISCRETE_STEPS - 1) ? (___min_(14, ___max_(1, 7 - (signed char) is + (signed char) be))) : be;
-                    aRTE_difference_sum += is;
+                    value_is = (value_should > 0 && value_should < DISCRETE_STEPS - 1) ?
+                               (___min_(14, ___max_(1, 7 - value_is + value_should))) :
+                               value_should;
                 }
     }
 

@@ -3,6 +3,8 @@
 #include "Worker.hpp"
 #include "CalibRTE.hpp"
 
+namespace Filter
+{
 class TranslatorWorker : public Worker
 {
 public:
@@ -19,29 +21,28 @@ protected:
         
     }
 
-    inline void work() override
+    void work() override
     {
-        meta_translate(this->m_work_matrix, translation_vec);
-        /*bool tx_sm_0 = 0 > -translation_vec.x;
-        bool ty_sm_0 = 0 > -translation_vec.y;
+        bool x_smaller_0 = 0 > translation_vec.x;
+        bool y_smaller_0 = 0 > translation_vec.y;
+        int x_area_cp = STREAM_WIDTH + (x_smaller_0 ? translation_vec.x : (-translation_vec.x));
+        int y_area_cp = STREAM_HEIGHT + (y_smaller_0 ? translation_vec.y : (-translation_vec.y));
 
-        int x_area_cp = STREAM_WIDTH + (tx_sm_0 ? -translation_vec.x : (translation_vec.x));
-        int y_area_cp = STREAM_HEIGHT + (ty_sm_0 ? -translation_vec.y : (translation_vec.y));
-
-        cv::Rect src{
-            !tx_sm_0 ? 0 : translation_vec.x,
-            !ty_sm_0 ? 0 : translation_vec.y,
+        cv::Rect src_rect
+        {
+            !x_smaller_0 ? 0 : -translation_vec.x,
+            !y_smaller_0 ? 0 : -translation_vec.y,
             x_area_cp, y_area_cp
         };
 
-        cv::Rect dst{
-            !tx_sm_0 ? -translation_vec.x : 0,
-            !ty_sm_0 ? -translation_vec.y : 0,
+        cv::Rect dst_rect
+        {
+            !x_smaller_0 ? translation_vec.x : 0,
+            !y_smaller_0 ? translation_vec.y : 0,
             x_area_cp, y_area_cp
         };
 
-        this->m_tmp = std::move(this->m_work_matrix);
-        this->m_work_matrix = cv::Mat::zeros(this->m_tmp.size(), CV_8U);
-        cv::copyTo(this->m_tmp(src), this->m_work_matrix(dst), cv::Mat());*/
+        cv::copyTo(this->m_work_matrix(src_rect), this->m_work_matrix(dst_rect), cv::Mat());
     }
+};
 };

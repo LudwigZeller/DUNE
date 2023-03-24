@@ -264,19 +264,13 @@ inline void saveMatAsFile(const cv::Mat &cln, const std::string name, const std:
     {
         std::stringstream dlm_tmp1;
 
-        std::string row = "";
-        std::string set_full = "";
-        std::string set = "";
-        uchar g = 0;
-        uchar l = 255;
+        std::string row = "", set_full = "", set = "";
+        uchar g = 0, l = 255;
         int count = 0;
 
         for(int i = 0; i < s.height; i++)
         {
-            dlm_tmp1 << "  \"";
-            row = "";
-            g = 255;
-            count = 0;
+            dlm_tmp1 << "  \""; row = ""; g = 255; count = 0;
             for(int j = 0; j < s.width; j++)
             {
                 for(int k = 0; k < 3; k++)
@@ -304,7 +298,6 @@ inline void saveMatAsFile(const cv::Mat &cln, const std::string name, const std:
         }
         tmpdat = dlm_tmp1.str();
     }
-
     dlm_out << tmpdat << std::flush;
 
     dlm_out << ")\n/// " << name << "\n" << std::endl;

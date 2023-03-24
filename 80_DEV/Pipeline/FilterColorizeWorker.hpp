@@ -129,10 +129,10 @@ protected:
 
     void work() override
     {
-        if(colorize_type == PERLIN && dat < 30 + TEMPORAL_BUFFER_LENGTH)
+        if(colorize_type == PERLIN && dat < PERLIN_LINGER_LENGTH + TEMPORAL_BUFFER_LENGTH)
         {
             dat++;
-            index_ptr = (dat < 30 + TEMPORAL_BUFFER_LENGTH) ? col_index : difference_index;
+            index_ptr = (dat < PERLIN_LINGER_LENGTH + TEMPORAL_BUFFER_LENGTH) ? col_index : difference_index;
         }
 
         tmp = std::move(this->m_work_matrix);
@@ -143,11 +143,6 @@ protected:
             pixel = index_ptr[c & ~LINE_MASK];
             pixel *= 1.0 - 0.5 * ((LINE_MASK & c) > 0);
         });
-
-        //if(colorize_type == PERLIN || colorize_type == DIFFERENCE)
-        //{
-        //    //cv::putText()
-        //}
     }
 
 };

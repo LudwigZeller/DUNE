@@ -34,6 +34,7 @@ protected:
 
     void work() override
     {
+        buffer.front().release();
         std::copy(buffer.begin() + 1, buffer.end(), buffer.begin());
         buffer.back() = this->m_work_matrix.clone();
 
