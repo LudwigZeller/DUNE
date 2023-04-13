@@ -8,7 +8,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include "utils.hpp"
+#include "Utils.hpp"
 #include <opencv2/core/mat.hpp>
 #include <mutex>
 

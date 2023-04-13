@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Worker.hpp"
+#include "../Worker.hpp"
 
 const static cv::Size ksize{9,9};
 

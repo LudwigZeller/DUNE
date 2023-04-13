@@ -10,7 +10,7 @@
 #include <thread>
 #include <condition_variable>
 #include <utility>
-#include "../utils.hpp"
+#include "../utils/Utils.hpp"
 
 /**
  * The starting piece of the pipeline.

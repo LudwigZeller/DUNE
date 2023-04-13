@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Worker.hpp"
-#include "CalibRTE.hpp"
+#include "../Worker.hpp"
+#include "../../calibRTE.hpp"
 
 double __sw_cord_factor = 1.0 / std::sqrt((double) (STREAM_WIDTH * STREAM_WIDTH) * 0.25 + (double) (STREAM_HEIGHT * STREAM_HEIGHT) * 0.25);
 double __sw_x_offset = -STREAM_WIDTH * 0.5;

@@ -1,7 +1,7 @@
 //
 // Created by Ludwig Zeller on 03.08.2022.
 //
-#include "utils.hpp"
+#include "Utils.hpp"
 
 cv::Mat frame_to_mat(const rs2::frame &f) {
     using namespace cv;

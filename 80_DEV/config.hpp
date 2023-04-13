@@ -51,7 +51,6 @@
 #define DISCRETE_STEPS                  (16)
 #define LINE_MASK                       (0x40)
 #define WEB_UI                          (true)
-#define DO_CALIB                        (false)
 #define TARGET_VOLUME                   (3300000)       //< Discrete sand volume
 #define TARGET_VOLUME_TOLERANCE         (0.05)          //< Discrete sand volume +/-value%
 #define TARGET_VOLUME_UPPER             (TARGET_VOLUME * (1.0 + TARGET_VOLUME_TOLERANCE))

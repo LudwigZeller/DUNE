@@ -6,8 +6,8 @@
 #include <chrono>
 #include <thread>
 #include <utility>
-#include "MatIO.hpp"
-#include "CalibRTE.hpp"
+#include "../utils/MatIO.hpp"
+#include "../calibRTE.hpp"
 
 cv::Mat color_mat;
 

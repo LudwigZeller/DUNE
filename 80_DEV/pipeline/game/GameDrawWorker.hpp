@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Worker.hpp"
+#include "../Worker.hpp"
 #include "GameLogicWorker.hpp"
 #include <vector>
 #include <opencv2/opencv.hpp>

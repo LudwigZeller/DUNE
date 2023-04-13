@@ -49,31 +49,30 @@
 
 /*****        LOCAL INCLUDE         *****/
 #include "config.hpp"
-#include "utils.hpp"
-#include "Window.hpp"
+#include "utils/Utils.hpp"
+#include "utils/Window.hpp"
 #include "webserver/Webserver.hpp"
 
 // Worker
 #include "pipeline/Pipeline.hpp"
-#include "pipeline/WindowWorker.hpp"
+#include "pipeline/workers/WindowWorker.hpp"
 #include "pipeline/CameraProvider.hpp"
-#include "pipeline/Test_Provider.hpp"
-#include "pipeline/FilterColorizeWorker.hpp"
-#include "pipeline/FilterTemporalWorker.hpp"
-#include "pipeline/FilterLineWorker.hpp"
-#include "pipeline/FilterInterpolatorWorker.hpp"
-#include "pipeline/FilterDiscreticiser.hpp"
-#include "pipeline/FilterScaleWorker.hpp"
-#include "pipeline/ResourcePlacementWorker.hpp"
-#include "pipeline/FilterAssetOverlayWorker.hpp"
-#include "pipeline/Calib.hpp"
-#include "pipeline/Translator.hpp"
-#include "pipeline/FilterDifferenceWorker.hpp"
-#include "pipeline/FilterStripeWorker.hpp"
-#include "pipeline/VisualCutWorker.hpp"
-#include "pipeline/GameLogicWorker.hpp"
-#include "pipeline/GameDrawWorker.hpp"
-#include "pipeline/FilterPerlinWorker.hpp"
+#include "pipeline/TestProvider.hpp"
+#include "pipeline/workers/FilterColorizeWorker.hpp"
+#include "pipeline/workers/FilterTemporalWorker.hpp"
+#include "pipeline/workers/FilterLineWorker.hpp"
+#include "pipeline/workers/FilterInterpolatorWorker.hpp"
+#include "pipeline/workers/FilterDiscreticiser.hpp"
+#include "pipeline/workers/FilterScaleWorker.hpp"
+#include "pipeline/workers/FilterResourcePlacementWorker.hpp"
+#include "pipeline/workers/FilterAssetOverlayWorker.hpp"
+#include "pipeline/workers/FilterTranslatorWorker.hpp"
+#include "pipeline/workers/FilterDifferenceWorker.hpp"
+#include "pipeline/workers/FilterStripeWorker.hpp"
+#include "pipeline/workers/FilterVisualCutWorker.hpp"
+#include "pipeline/game/GameLogicWorker.hpp"
+#include "pipeline/game/GameDrawWorker.hpp"
+#include "pipeline/workers/FilterPerlinWorker.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -137,7 +136,6 @@ __ARTE_INIT_ int main(int argc, char **argv)
     Filter::AssetOverlayWorker asset_overlay{"Asset_Overlay_Filter", BC_Trees};
     Filter::DifferenceWorker difference_worker{"Filter_Difference_Worker"};
     Filter::StripeWorker stripe_worker{"Filter_Stripe_Worker"};
-    CalibWorker calib_worker{"Calib_Worker"};
     TranslatorWorker translator_worker{"Translator_Worker"};
     Filter::VisualCutWorker visual_cut_worker{"Visual_Cut_Worker"};
     Simulation::GameLogicWorker game_logic_worker{"Game_Logic_Worker"};
@@ -151,10 +149,6 @@ __ARTE_INIT_ int main(int argc, char **argv)
     Pipeline pipeline_difference{camera_provider};
     Pipeline pipeline_stripe{camera_provider};
     Pipeline pipeline_perlin{camera_provider};
-
-#if DO_CALIB
-    Pipeline pipeline_calibration{camera_provider};
-#endif
 
     pipeline_smooth.push_worker(&discreticiser_worker);
     pipeline_smooth.push_worker(&scale_worker);
@@ -209,23 +203,6 @@ __ARTE_INIT_ int main(int argc, char **argv)
     pipeline_perlin.push_worker(&perlin_colorize_worker);
     pipeline_perlin.push_worker(&interpolator_worker);
     pipeline_perlin.push_worker(&window_worker);
-
-
-#if DO_CALIB
-    pipeline_calibration.push_worker(&discreticiser_worker);
-    pipeline_calibration.push_worker(&calib_worker);
-    pipeline_calibration.push_worker(&window_worker);
-
-    pipeline_calibration.start();
-    while (stay_in_calib && window
-#if WEB_UI
-#else
-           && twindow
-#endif
-    )
-        ;
-    pipeline_calibration.stop();
-#endif
 
     pipeline_smooth.start();
 

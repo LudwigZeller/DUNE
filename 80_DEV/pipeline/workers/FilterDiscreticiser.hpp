@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Worker.hpp"
-#include "../Window.hpp"
+#include "../Worker.hpp"
+#include "../../utils/Window.hpp"
 
 /**
  * @brief Project's Filter namespace

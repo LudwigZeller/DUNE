@@ -11,10 +11,10 @@
 #include <condition_variable>
 #include <utility>
 #include <atomic>
-#include "../utils.hpp"
+#include "../utils/Utils.hpp"
 #include "../config.hpp"
-#include "../matdef.hpp"
-#include "MatIO.hpp"
+#include "../utils/MatUtils.hpp"
+#include "../utils/MatIO.hpp"
 
 class Worker {
 private:

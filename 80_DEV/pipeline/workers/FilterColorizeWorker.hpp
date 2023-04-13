@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Worker.hpp"
+#include "../Worker.hpp"
 #include <functional>
 
 const static cv::Vec3b black{0,0,0};

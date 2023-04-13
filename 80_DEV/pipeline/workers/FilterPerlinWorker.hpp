@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Worker.hpp"
-#include "Provider.hpp"
-#include "VisualCutWorker.hpp"
-#include "Translator.hpp"
+#include "../Worker.hpp"
+#include "../Provider.hpp"
+#include "FilterVisualCutWorker.hpp"
+#include "FilterTranslatorWorker.hpp"
 #include "FilterScaleWorker.hpp"
 #include "FilterDiscreticiser.hpp"
-#include "../PerlinNoise.hpp"
+#include "../../utils/PerlinNoise.hpp"
 /**
  * @brief Project's Filter namespace
 */

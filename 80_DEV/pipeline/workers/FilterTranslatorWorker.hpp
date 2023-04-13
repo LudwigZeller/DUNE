@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Worker.hpp"
-#include "CalibRTE.hpp"
+#include "../Worker.hpp"
+#include "../../calibRTE.hpp"
 
 class TranslatorWorker : public Worker
 {

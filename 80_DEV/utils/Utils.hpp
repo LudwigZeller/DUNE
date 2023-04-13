@@ -5,22 +5,22 @@
 #ifndef DEPTHCAMERA_UTILS_HPP
 #define DEPTHCAMERA_UTILS_HPP
 
-#include "config.hpp"
+#include "../config.hpp"
 
 #include <cassert>
 #include <iomanip>
 #include <fstream>
 #include <iostream>
-#include "glad/glad.h"
+#include "../dependencies/glad/include/glad/glad.h"
 #include <string>
 #include <sstream>
 #include <chrono>
 #include <thread>
 #include <vector>
 #include <opencv2/opencv.hpp>
-#include "dependencies/stb_easy_font.h"
+#include "../dependencies/stb_easy_font.h"
 #include "Window.hpp"
-#include "librealsense2/hpp/rs_frame.hpp"
+#include <librealsense2/hpp/rs_frame.hpp>
 #include <time.h>
 
 enum log_type { info, warn, err };

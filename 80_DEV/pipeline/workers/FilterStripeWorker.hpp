@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Worker.hpp"
+#include "../Worker.hpp"
 
 /**
  * @brief Project's Filter namespace

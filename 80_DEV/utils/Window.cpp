@@ -3,9 +3,10 @@
 //
 
 #include "Window.hpp"
-#include "config.hpp"
+#include "../config.hpp"
 #include <cstring>
 #include <fstream>
+#include "../calibRTE.hpp"
 
 
 Window::Window(const char *title, const int _type) : m_type(_type) {
@@ -142,8 +143,6 @@ Window::operator bool() {
 
     return res;
 }
-
-#include "Pipeline/CalibRTE.hpp"
 
 void Window::onKeyCustom(GLFWwindow *window, int key, int scancode, int action, int mods) {
     static bool shift_prsd = false;

@@ -1,7 +1,7 @@
 #ifndef DUNE_PIPELINE_WINDOWWORKER_HPP
 #define DUNE_PIPELINE_WINDOWWORKER_HPP
 
-#include "Worker.hpp"
+#include "../Worker.hpp"
 #include <chrono>
 #include <thread>
 #include <utility>

@@ -10,9 +10,9 @@ include(cmake/utils.cmake)
 #################### Add files to compile here ###################
 set(PROJECT_FILES
         main.cpp
-        utils.cpp
-        Window.cpp
-        Pipeline/Pipeline.cpp
+        utils/Utils.cpp
+        utils/Window.cpp
+        pipeline/Pipeline.cpp
         webserver/Webserver.cpp)
 ##################################################################
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Worker.hpp"
+#include "../Worker.hpp"
 
-#include "../assets.dres"
-#include "AssetRTE.hpp"
+#include "../../assets.dres"
+#include "../../assetRTE.hpp"
 
 const cv::Vec3b bl{0,0,0};
 
