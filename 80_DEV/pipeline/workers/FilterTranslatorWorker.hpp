@@ -3,6 +3,9 @@
 #include "../Worker.hpp"
 #include "../../calibRTE.hpp"
 
+namespace Filter
+{
+    
 class TranslatorWorker : public Worker
 {
 public:
@@ -15,12 +18,12 @@ protected:
     }
 
     inline void start_up() override
-    {
-        
-    }
+    {}
 
     inline void work() override
     {
         mat_meta_translate(this->m_work_matrix, translation_vec);
     }
+};
+
 };

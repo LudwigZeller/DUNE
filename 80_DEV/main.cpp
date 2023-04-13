@@ -64,7 +64,7 @@
 #include "pipeline/workers/FilterInterpolatorWorker.hpp"
 #include "pipeline/workers/FilterDiscreticiser.hpp"
 #include "pipeline/workers/FilterScaleWorker.hpp"
-#include "pipeline/workers/FilterResourcePlacementWorker.hpp"
+#include "pipeline/workers/FilterAssetPlacementWorker.hpp"
 #include "pipeline/workers/FilterAssetOverlayWorker.hpp"
 #include "pipeline/workers/FilterTranslatorWorker.hpp"
 #include "pipeline/workers/FilterDifferenceWorker.hpp"
@@ -92,16 +92,19 @@ volatile bool stay_in_calib = true;
 
 __ARTE_INIT_ int main(int argc, char **argv)
 {
+    /******************
+     * PRE-INIT PHASE *
+     ******************/
+
     std::srand((unsigned)std::time(nullptr));
     std::cout << "Starting DepthCamera, running in " << std::this_thread::get_id() << std::endl;
 
-    Provider *camera_provider = new CameraProvider{"Camera_Provider"};
+    Provider *camera_provider;// = new CameraProvider{"Camera_Provider"};
 
-    //! Temp
-    Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
-
+    //!! Test provider is activated upon passing an argument
     if(argc > 1)
     {
+        //! Loads a Discrete Depth image with special codec
         cv::Mat mat = res_load_depth_mat(argv[1]);
         if(!mat.empty())
         {
@@ -114,42 +117,66 @@ __ARTE_INIT_ int main(int argc, char **argv)
 
             camera_provider = new Test_Provider{"Test_Provider", mat};
         }
+        else
+        {
+            clog(err) << ".res -> Matrix loading error! Please check the input file!" << std::endl;
+            return -1;
+        }
     }
 
+    /******************
+     * VAL-INIT PHASE *
+     ******************/
+
+    //! Opens a new GLFW Window -> Fullscreen on Projector
     Window window{"DUNE", MONITOR_BEAMER_FIX};
-#if WEB_UI
-#else
+    WindowWorker window_worker{"Window_Worker", &window};
+#if !WEB_UI
+    //! Deprecated GLFW Control Window
     Window twindow{"DUNE Touch", MONITOR_TOUCHDISPLAY_FIX};
 #endif
-    // Window
-    WindowWorker window_worker{"Window_Worker", &window};
-    Filter::TemporalWorker temporal_worker{"Filter_Temporal_Worker"};
-    Filter::ColorizeWorker colorize_worker{"Filter_Colorize_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::DEFAULT};
-    Filter::ColorizeWorker diff_colorize_worker{"Filter_Colorize_Diff_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::DIFFERENCE};
-    Filter::ColorizeWorker perlin_colorize_worker{"Filter_Colorize_Perlin_Worker", Filter::ColorizeWorker::COLORIZE_TYPE_e::PERLIN};
-    Filter::LineWorker line_worker{"Filter_Line_Worker"};
-    Filter::InterpolatorWorker interpolator_worker{"Filter_Interpolator_Worker"};
-    //> temp > Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
-    discreticiser_worker.bind_to_window(window);
+
+    /*** Colorize Types ***/
+    Filter::ColorizeWorker colorize_worker{"Filter_Colorize_Worker",
+        Filter::ColorizeWorker::COLORIZE_TYPE_e::DEFAULT};
+    Filter::ColorizeWorker diff_colorize_worker{"Filter_Colorize_Diff_Worker",
+        Filter::ColorizeWorker::COLORIZE_TYPE_e::DIFFERENCE};
+    Filter::ColorizeWorker perlin_colorize_worker{"Filter_Colorize_Perlin_Worker",
+        Filter::ColorizeWorker::COLORIZE_TYPE_e::PERLIN};
+
+    /*** Tranformation Workers ***/
     Filter::ScaleWorker scale_worker{"Filter_Scale_Worker"};
-    Filter::ResourcePlacementWorker resource_placement{"Resource_Placement_Worker", BC_Trees, tree_asmak_WIDTH, tree_asmak_HEIGHT, tree_asmak_DATA};
+    Filter::TranslatorWorker translator_worker{"Translator_Worker"};
+    Filter::VisualCutWorker visual_cut_worker{"Visual_Cut_Worker"};
+
+    /*** Smoothing workers ***/
+    Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
+    Filter::TemporalWorker temporal_worker{"Filter_Temporal_Worker"};
+    Filter::InterpolatorWorker interpolator_worker{"Filter_Interpolator_Worker"};
+
+    /*** Miscellaneous workers ***/
+    Filter::AssetPlacementWorker asset_placement{"Asset_Placement_Worker", BC_Trees, tree_asmak_WIDTH, tree_asmak_HEIGHT, tree_asmak_DATA};
     Filter::AssetOverlayWorker asset_overlay{"Asset_Overlay_Filter", BC_Trees};
+    Filter::LineWorker line_worker{"Filter_Line_Worker"};
     Filter::DifferenceWorker difference_worker{"Filter_Difference_Worker"};
     Filter::StripeWorker stripe_worker{"Filter_Stripe_Worker"};
-    TranslatorWorker translator_worker{"Translator_Worker"};
-    Filter::VisualCutWorker visual_cut_worker{"Visual_Cut_Worker"};
+
+    /*** Game workers ***/
     Simulation::GameLogicWorker game_logic_worker{"Game_Logic_Worker"};
     Simulation::GameDrawWorker game_draw_worker{"Game_Draw_Worker", &game_logic_worker};
 
+    /*** Perlin workers ***/
     Filter::PerlinWorker perlin_worker{"Perlin_Worker", false};
     Filter::DifferenceWorker perlin_difference_worker{"Filter_Perlin_Difference_Worker", true};
 
-    Pipeline pipeline_minecraft{camera_provider};
+    /**** PIPELINE INIT ****/
     Pipeline pipeline_smooth{camera_provider};
+    Pipeline pipeline_blockcraft{camera_provider};
     Pipeline pipeline_difference{camera_provider};
     Pipeline pipeline_stripe{camera_provider};
     Pipeline pipeline_perlin{camera_provider};
 
+    /*** Smooth filter setup ***/
     pipeline_smooth.push_worker(&discreticiser_worker);
     pipeline_smooth.push_worker(&scale_worker);
     pipeline_smooth.push_worker(&translator_worker);
@@ -161,18 +188,19 @@ __ARTE_INIT_ int main(int argc, char **argv)
     pipeline_smooth.push_worker(&game_draw_worker);
     pipeline_smooth.push_worker(&window_worker);
 
+    /*** Blockcraft filter setup ***/
+    pipeline_blockcraft.push_worker(&discreticiser_worker);
+    pipeline_blockcraft.push_worker(&scale_worker);
+    pipeline_blockcraft.push_worker(&translator_worker);
+    pipeline_blockcraft.push_worker(&visual_cut_worker);
+    pipeline_blockcraft.push_worker(&temporal_worker);
+    pipeline_blockcraft.push_worker(&asset_overlay);
+    pipeline_blockcraft.push_worker(&line_worker);
+    pipeline_blockcraft.push_worker(&colorize_worker);
+    pipeline_blockcraft.push_worker(&asset_placement);
+    pipeline_blockcraft.push_worker(&window_worker);
 
-    pipeline_minecraft.push_worker(&discreticiser_worker);
-    pipeline_minecraft.push_worker(&scale_worker);
-    pipeline_minecraft.push_worker(&translator_worker);
-    pipeline_minecraft.push_worker(&visual_cut_worker);
-    pipeline_minecraft.push_worker(&temporal_worker);
-    pipeline_minecraft.push_worker(&asset_overlay);
-    pipeline_minecraft.push_worker(&line_worker);
-    pipeline_minecraft.push_worker(&colorize_worker);
-    pipeline_minecraft.push_worker(&resource_placement);
-    pipeline_minecraft.push_worker(&window_worker);
-
+    /*** Difference filter setup ***/
     pipeline_difference.push_worker(&discreticiser_worker);
     pipeline_difference.push_worker(&scale_worker);
     pipeline_difference.push_worker(&translator_worker);
@@ -183,6 +211,7 @@ __ARTE_INIT_ int main(int argc, char **argv)
     pipeline_difference.push_worker(&interpolator_worker);
     pipeline_difference.push_worker(&window_worker);
 
+    /*** Stripe filter setup ***/
     pipeline_stripe.push_worker(&discreticiser_worker);
     pipeline_stripe.push_worker(&scale_worker);
     pipeline_stripe.push_worker(&translator_worker);
@@ -193,6 +222,7 @@ __ARTE_INIT_ int main(int argc, char **argv)
     pipeline_stripe.push_worker(&interpolator_worker);
     pipeline_stripe.push_worker(&window_worker);
 
+    /*** Perlin filter setup ***/
     pipeline_perlin.push_worker(&perlin_worker);
     pipeline_perlin.push_worker(&discreticiser_worker);
     pipeline_perlin.push_worker(&scale_worker);
@@ -204,7 +234,12 @@ __ARTE_INIT_ int main(int argc, char **argv)
     pipeline_perlin.push_worker(&interpolator_worker);
     pipeline_perlin.push_worker(&window_worker);
 
-    pipeline_smooth.start();
+    //! Default Pipeline = Smooth Filter
+    pipeline_blockcraft.start();
+
+    /*******************
+     * MAIN LOOP & WEB *
+     *******************/
 
 #if WEB_UI
 
@@ -221,8 +256,7 @@ __ARTE_INIT_ int main(int argc, char **argv)
         filter = new_filter;
 
         clog(info) << "Received new HTTP Data - Initiating Pipeline Switch!" << std::endl;
-        // if(new_filter.is_filter == true) { //< Hier bitte ein zweites flag erstellen dass hier ein conditional zwischen "neuer filter" und "perlin settings" unterscheiden kann
-        pipeline_minecraft.stop();
+        pipeline_blockcraft.stop();
         pipeline_smooth.stop();
         pipeline_difference.stop();
         pipeline_stripe.stop();
@@ -236,7 +270,7 @@ __ARTE_INIT_ int main(int argc, char **argv)
             break;
         case Data::Filter::BLOCKCRAFT:
             clog(info) << "BLOCKCRAFT FILTER PIPELINE" << std::endl;
-            pipeline_minecraft.start();
+            pipeline_blockcraft.start();
             break;
         case Data::Filter::DIFFERENCE:
             clog(info) << "DIFFERENCE FILTER PIPELINE" << std::endl;
@@ -253,11 +287,12 @@ __ARTE_INIT_ int main(int argc, char **argv)
         }
     }
 
-    pipeline_minecraft.stop();
+    pipeline_blockcraft.stop();
     pipeline_smooth.stop();
     pipeline_difference.stop();
     pipeline_stripe.stop();
 #else
+    //!! Deprecated
     int state = twindow.get_dat();
     twindow.render_matrix(getCaptureIndex(state));
 
@@ -294,12 +329,6 @@ __ARTE_INIT_ int main(int argc, char **argv)
 
             difference_worker.reset_save();
             twindow.cooldown = false;
-        }
-        if (twindow.docapture)
-        {
-            twindow.docapture = false;
-            cv::Mat mat = window.capture();
-            saveMatAsFile(mat, "CAPTURE", "./capture.dres");
         }
     }
 

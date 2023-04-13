@@ -25,15 +25,15 @@ protected:
 
     void work() override
     {
-        std::vector<aRTE_point_bool> &rpb = get_kernel(asset_type);
+        static std::vector<aRTE_point_bool> &rpb = get_kernel(asset_type);
         for(int i = 0; i < rpb.size(); i++)
         {
             uchar c = this->m_work_matrix.at<uchar>(rpb[i].p);
             switch(asset_type)
             {
                 case BC_Trees:
-                    rpb[i].b = c > 5 && c < 9;
-                break; case Palms:
+                    rpb[i].b = c > 4 && c < 9;
+                break; case BE_Palms:
                     rpb[i].b = c > 4;
                 break;
             }

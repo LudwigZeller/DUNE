@@ -28,26 +28,7 @@ protected:
 
     void work() override
     {
-        //cv::upsa
-        //cv::resize(this->m_work_matrix, this->m_work_matrix, cv::Size{}, 2.0, 2.0, cv::InterpolationFlags::INTER_LINEAR);
-        //cv::GaussianBlur(this->m_work_matrix, this->m_work_matrix, ksize, 0, 0, cv::BorderTypes::BORDER_REPLICATE);
-        //cv::blur(this->m_work_matrix, this->m_work_matrix, ksize);
-        cv::Mat m1 = this->m_work_matrix(cv::Rect{
-            0,0,STREAM_WIDTH/2,STREAM_HEIGHT
-        });
-        cv::Mat m2 = this->m_work_matrix(cv::Rect{
-            STREAM_WIDTH/2 + 1, 0, STREAM_WIDTH / 2 - 1, STREAM_HEIGHT
-        });
-        std::thread t1{[&]{
-            cv::medianBlur(m1,m1,5);
-        }};
-        std::thread t2{[&]{
-            cv::medianBlur(m2,m2,5);
-        }};
-
-        t1.join(); t2.join();
-
-        //cv::medianBlur(this->m_work_matrix,this->m_work_matrix,3);
+        // TODO
     }
 };
 

@@ -34,13 +34,13 @@ protected:
 
     void work() override
     {
+        buffer.front().release();
         std::copy(buffer.begin() + 1, buffer.end(), buffer.begin());
         buffer.back() = this->m_work_matrix.clone();
 
         for(auto i = buffer.begin(); i + 1 != buffer.end(); i++)
             this->m_work_matrix += *i;
         this->m_work_matrix *= i_num_buffer;
-        //cv::blur(this->m_work_matrix, buffer.back(), cv::Size{3,3});
     }
 };
 
