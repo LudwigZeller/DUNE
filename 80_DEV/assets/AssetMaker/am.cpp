@@ -13,5 +13,5 @@
 int main(void)
 {
     cv::Mat mat = cv::imread(PATH_PNG);
-    saveMatAsFile(mat, RES_NAME, PATH_RES);
+    dres_save_color_mat(mat, RES_NAME, PATH_RES);
 }

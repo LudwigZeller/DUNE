@@ -58,6 +58,8 @@ DECL_FLAG := -D_PATH_PNG="../$(targetpng).png" -D_PATH_RES="../$(targetpng).dres
 
 ### SOURCE/OBJ DEFINITIONS ###
 
+SOURCES := am.cpp
+
 # Check if sources not empty
 ifeq ($(SOURCES),)
 $(error Define SOURCES)

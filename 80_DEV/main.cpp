@@ -51,30 +51,29 @@
 #include "config.hpp"
 #include "utils.hpp"
 #include "Window.hpp"
-#include "Calibration.hpp"
 #include "webserver/Webserver.hpp"
 
 // Worker
-#include "Pipeline/Pipeline.hpp"
-#include "Pipeline/WindowWorker.hpp"
-#include "Pipeline/CameraProvider.hpp"
-#include "Pipeline/Test_Provider.hpp"
-#include "Pipeline/FilterColorizeWorker.hpp"
-#include "Pipeline/FilterTemporalWorker.hpp"
-#include "Pipeline/FilterLineWorker.hpp"
-#include "Pipeline/FilterInterpolatorWorker.hpp"
-#include "Pipeline/FilterDiscreticiser.hpp"
-#include "Pipeline/FilterScaleWorker.hpp"
-#include "Pipeline/ResourcePlacementWorker.hpp"
-#include "Pipeline/FilterAssetOverlayWorker.hpp"
-#include "Pipeline/Calib.hpp"
-#include "Pipeline/Translator.hpp"
-#include "Pipeline/FilterDifferenceWorker.hpp"
-#include "Pipeline/FilterStripeWorker.hpp"
-#include "Pipeline/VisualCutWorker.hpp"
-#include "Pipeline/GameLogicWorker.hpp"
-#include "Pipeline/GameDrawWorker.hpp"
-#include "Pipeline/FilterPerlinWorker.hpp"
+#include "pipeline/Pipeline.hpp"
+#include "pipeline/WindowWorker.hpp"
+#include "pipeline/CameraProvider.hpp"
+#include "pipeline/Test_Provider.hpp"
+#include "pipeline/FilterColorizeWorker.hpp"
+#include "pipeline/FilterTemporalWorker.hpp"
+#include "pipeline/FilterLineWorker.hpp"
+#include "pipeline/FilterInterpolatorWorker.hpp"
+#include "pipeline/FilterDiscreticiser.hpp"
+#include "pipeline/FilterScaleWorker.hpp"
+#include "pipeline/ResourcePlacementWorker.hpp"
+#include "pipeline/FilterAssetOverlayWorker.hpp"
+#include "pipeline/Calib.hpp"
+#include "pipeline/Translator.hpp"
+#include "pipeline/FilterDifferenceWorker.hpp"
+#include "pipeline/FilterStripeWorker.hpp"
+#include "pipeline/VisualCutWorker.hpp"
+#include "pipeline/GameLogicWorker.hpp"
+#include "pipeline/GameDrawWorker.hpp"
+#include "pipeline/FilterPerlinWorker.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
@@ -92,7 +91,7 @@ volatile bool stay_in_calib = true;
  * @returns Error Code
  */
 
-int main(int argc, char **argv)
+__ARTE_INIT_ int main(int argc, char **argv)
 {
     std::srand((unsigned)std::time(nullptr));
     std::cout << "Starting DepthCamera, running in " << std::this_thread::get_id() << std::endl;
@@ -104,7 +103,7 @@ int main(int argc, char **argv)
 
     if(argc > 1)
     {
-        cv::Mat mat = load_depth_image(argv[1]);
+        cv::Mat mat = res_load_depth_mat(argv[1]);
         if(!mat.empty())
         {
             camera_provider->stop();
