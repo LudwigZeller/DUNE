@@ -23,9 +23,9 @@ protected:
         /* No startup required */
     }
 
+    #define STRIPE_WIDENESS 4
     void work() override
     {
-#define STRIPE_WIDENESS 4
         this->m_work_matrix.forEach<uchar>([](uchar &pixel, const int *pos)
         {
             pixel = (pixel > 0 && pixel < (DISCRETE_STEPS - 1)) ? (

@@ -45,7 +45,6 @@ protected:
             this->m_reference = this->m_work_matrix.clone();
         }
 
-        aRTE_difference_sum = 0;
         if(val_linger_frame) val_linger_frame--;
         if(!val_linger_frame)
             for(int y = CUTOFF_TOP; y <= CUTOFF_BOT; y++)
@@ -55,7 +54,6 @@ protected:
                     const uchar &be = this->m_reference.at<uchar>(y,x);
 
                     is = (be > 0 && be < DISCRETE_STEPS - 1) ? (___min_(14, ___max_(1, 7 - (signed char) is + (signed char) be))) : be;
-                    aRTE_difference_sum += ___abs_(8 - is);
                 }
     }
 

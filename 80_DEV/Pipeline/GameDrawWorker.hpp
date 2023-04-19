@@ -35,23 +35,37 @@ protected:
         for (Game::Fighter &fighter : fighters)
         {
             //cv::circle(m_work_matrix, cv::Point{ fighter.x,  fighter.y}, 5, cv::Scalar{0,fighter.lifepoints / 100. * 255,(1 - fighter.lifepoints / 100.) * 255}, -1);
-            cv::Point start{fighter.x + 5, fighter.y};
+            cv::Point center{fighter.x, fighter.y};
             double re, im;
             double deg_inc = 3.6;
-            for (double deg = deg_inc; deg < fighter.lifepoints / 100. * 360.; deg+=deg_inc)
-            {
-                sincos(deg, &im, &re);
-                cv::Point stop{fighter.x + (int)(re * 5.), fighter.y + (int)(im * 5.)};
-                cv::line(m_work_matrix, start, stop, cv::Scalar{0,fighter.lifepoints / 100. * 255,(1 - fighter.lifepoints / 100.) * 255});
-                start = stop;
-            }
+
+            cv::circle(m_work_matrix, center, 7, cv::Scalar{127,127,127}, -1);
+
+            cv::ellipse(m_work_matrix, 
+                        center,
+                        cv::Size{5,5},
+                        0, // Direction
+                        0, 360. * fighter.lifepoints / 100.,
+                        cv::Scalar{0,fighter.lifepoints / 100. * 255,(1 - fighter.lifepoints / 100.) * 255},
+                        -1);
+
+                        
+
+            //for (double deg = deg_inc; deg < fighter.lifepoints / 100. * 360.; deg+=deg_inc)
+            //{
+            //    sincos(deg, &im, &re);
+            //    cv::Point stop{fighter.x + (int)(re * 5.), fighter.y + (int)(im * 5.)};
+            //    cv::line(m_work_matrix, start, stop, cv::Scalar{0,fighter.lifepoints / 100. * 255,(1 - fighter.lifepoints / 100.) * 255});
+            //    start = stop;
+            //}
+
             
             switch (fighter.team) {
                 case Game::Team::Blue:    
-                    cv::circle(m_work_matrix, cv::Point{ fighter.x,  fighter.y}, 3, cv::Scalar{255,0,0}, -1);
+                    cv::circle(m_work_matrix, center, 3, cv::Scalar{255,0,0}, -1);
                     break;
                 case Game::Team::Red:
-                    cv::circle(m_work_matrix, cv::Point{ fighter.x,  fighter.y}, 3, cv::Scalar{0,0,255}, -1);
+                    cv::circle(m_work_matrix, center, 3, cv::Scalar{0,0,255}, -1);
                     break;
             }
             

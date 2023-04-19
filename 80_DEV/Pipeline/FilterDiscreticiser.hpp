@@ -26,11 +26,6 @@ public:
     explicit DiscreticiserWorker(std::string id): Worker(std::move(id), MatIOType::SHORT_16, MatIOType::CHAR_8)
     { /* No extra construction required */ }
 
-    void bind_to_window(Window &w)
-    {
-        w.bind_capture_adress([this](){this->capture();});
-    }
-
 protected:
 
     void start_up() override
@@ -41,7 +36,7 @@ protected:
     void work() override
     {
         const static double _scalc1 = m_disc_end - m_disc_start;
-        const static double _scalc2 = 1.0 / (_scalc1 / (m_lin_steps - 2));
+        const static double _scalc2 = ((double)m_lin_steps - 2.0) / _scalc1;
 
         tmp = std::move(this->m_work_matrix);
         this->m_work_matrix = cv::Mat(tmp.size(), CV_8U);

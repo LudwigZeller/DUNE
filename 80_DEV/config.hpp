@@ -58,12 +58,8 @@
 #define TARGET_VOLUME_LOWER             (TARGET_VOLUME * (1.0 - TARGET_VOLUME_TOLERANCE))
 #define TEMPORAL_BUFFER_LENGTH          (12)            //< Size for Temporal buffer
 #define PERLIN_LINGER_LENGTH            (30)            //< Amount of time that the perlin image stays on screen
-#define BORDER_CUTOFF_TOP               (7)
-#define BORDER_CUTOFF_BOT               (700)
-#define BORDER_CUTOFF_LEFT              (215)
-#define BORDER_CUTOFF_RIGHT             (1145)
 #define CUTOFF_TOP                      (53)
-#define CUTOFF_BOT                      (681)
+#define CUTOFF_BOT                      (686)
 #define CUTOFF_LEFT                     (250)
 #define CUTOFF_RIGHT                    (1100)
 #define CUTOFF_FRAME_STRENGTH           (5)

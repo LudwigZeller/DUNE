@@ -22,7 +22,7 @@ public:
     {
         for(auto i = buffer.begin(); i != buffer.end(); i++)
         {
-            *i = cv::Mat::zeros(cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_8U);
+            *i = cv::Mat(cv::Size{STREAM_WIDTH, STREAM_HEIGHT}, CV_8U, 15);
         }
         
     }
@@ -34,13 +34,17 @@ protected:
 
     void work() override
     {
+        //!! Shifting statement
         std::copy(buffer.begin() + 1, buffer.end(), buffer.begin());
         buffer.back() = this->m_work_matrix.clone();
 
-        for(auto i = buffer.begin(); i + 1 != buffer.end(); i++)
-            this->m_work_matrix += *i;
-        this->m_work_matrix *= i_num_buffer;
-        //cv::blur(this->m_work_matrix, buffer.back(), cv::Size{3,3});
+        //!! Summing
+        for(cv::Mat &m : this->buffer)
+            this->m_work_matrix += m;
+
+        //!! Division and rounding
+        this->m_work_matrix.convertTo(this->m_work_matrix, CV_16F, i_num_buffer, 0.49);
+        this->m_work_matrix.convertTo(this->m_work_matrix, CV_8U);
     }
 };
 

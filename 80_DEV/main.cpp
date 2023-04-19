@@ -75,13 +75,14 @@
 #include "Pipeline/GameLogicWorker.hpp"
 #include "Pipeline/GameDrawWorker.hpp"
 #include "Pipeline/FilterPerlinWorker.hpp"
+#include "Pipeline/TemporaryFilter.hpp"
 
 /*****           MISC               *****/
 #include <iostream>
 #include <chrono>
 #include <regex>
 
-cv::Point2i translation_vec = {-3, -2};
+cv::Point2i translation_vec = {-22, -15};
 cv::Size scalar_kernel = {(int)(STREAM_WIDTH), (int)(0.993 * STREAM_HEIGHT)};
 volatile bool stay_in_calib = true;
 
@@ -132,7 +133,7 @@ int main(int argc, char **argv)
     Filter::LineWorker line_worker{"Filter_Line_Worker"};
     Filter::InterpolatorWorker interpolator_worker{"Filter_Interpolator_Worker"};
     //> temp > Filter::DiscreticiserWorker discreticiser_worker{"Filter_Discreticiser_Worker"};
-    discreticiser_worker.bind_to_window(window);
+    
     Filter::ScaleWorker scale_worker{"Filter_Scale_Worker"};
     Filter::ResourcePlacementWorker resource_placement{"Resource_Placement_Worker", BC_Trees, tree_asmak_WIDTH, tree_asmak_HEIGHT, tree_asmak_DATA};
     Filter::AssetOverlayWorker asset_overlay{"Asset_Overlay_Filter", BC_Trees};
@@ -146,6 +147,9 @@ int main(int argc, char **argv)
 
     Filter::PerlinWorker perlin_worker{"Perlin_Worker", false};
     Filter::DifferenceWorker perlin_difference_worker{"Filter_Perlin_Difference_Worker", true};
+
+    //Filter::TmpFilter tmp{"tmp"};
+    //tmp.bind_to_window(window);
 
     Pipeline pipeline_minecraft{camera_provider};
     Pipeline pipeline_smooth{camera_provider};
@@ -162,10 +166,10 @@ int main(int argc, char **argv)
     pipeline_smooth.push_worker(&translator_worker);
     pipeline_smooth.push_worker(&visual_cut_worker);
     pipeline_smooth.push_worker(&temporal_worker);
-    pipeline_smooth.push_worker(&game_logic_worker);
+    //pipeline_smooth.push_worker(&game_logic_worker);
     pipeline_smooth.push_worker(&colorize_worker);
     pipeline_smooth.push_worker(&interpolator_worker);
-    pipeline_smooth.push_worker(&game_draw_worker);
+    //pipeline_smooth.push_worker(&game_draw_worker);
     pipeline_smooth.push_worker(&window_worker);
 
 

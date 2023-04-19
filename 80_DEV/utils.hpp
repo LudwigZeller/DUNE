@@ -243,7 +243,6 @@ cv::Mat assetToMat(unsigned int width, unsigned int height, const char *data);
 cv::Mat assetToMatDepth(unsigned int width, unsigned int height, const short *data);
 
 static const char CHHEX_Translate[17] = "0123456789ABCDEF";
-
 inline void saveMatAsFile(const cv::Mat &cln, const std::string name, const std::string path)
 {
     uchar *dat = (uchar*) cln.ptr<uchar[3]>();
@@ -252,31 +251,24 @@ inline void saveMatAsFile(const cv::Mat &cln, const std::string name, const std:
     clog(info) << "Creating asset: " << path << std::endl;
     
     dlm_out <<
-        "/**\n * Auto-generated resource \"" << path << "\" originating from OpenCV matrix"         \
-        "\n * Asset \"" << name << "\" created for DUNE Project\n * @author David Schoosleitner"                       \
+        "/**\n * Auto-generated resource \"" << path << "\" originating from OpenCV matrix"        \
+        "\n * Asset \"" << name << "\" created for DUNE Project\n * @author David Schoosleitner"   \
         "\n * (c) David Schoosleitner 2022\n */\n\n#pragma once\n\n/***** DATA *****/\n" << std::endl;
     dlm_out << "//! Matrix Width\n#define " << name << "_WIDTH (" << s.width << "u)\n" << std::endl;
     dlm_out << "//! Matrix Height\n#define " << name << "_HEIGHT (" << s.height << "u)\n" << std::endl;
     dlm_out << "//! Matrix Data: Hex format 0x[BBGGRR]0x[....\n#define " << name << "_DATA ( \\" << std::endl;
 
     std::string tmpdat;
-
     {
         std::stringstream dlm_tmp1;
 
-        std::string row = "";
-        std::string set_full = "";
-        std::string set = "";
-        uchar g = 0;
-        uchar l = 255;
+        std::string row = "", set_full = "", set = "";
+        uchar g = 0, l = 255;
         int count = 0;
 
         for(int i = 0; i < s.height; i++)
         {
-            dlm_tmp1 << "  \"";
-            row = "";
-            g = 255;
-            count = 0;
+            dlm_tmp1 << "  \""; row = ""; g = 255; count = 0;
             for(int j = 0; j < s.width; j++)
             {
                 for(int k = 0; k < 3; k++)
@@ -300,13 +292,11 @@ inline void saveMatAsFile(const cv::Mat &cln, const std::string name, const std:
                 }
             }
             dlm_tmp1 << row << "\" \\" << std::endl;
-
         }
         tmpdat = dlm_tmp1.str();
     }
 
     dlm_out << tmpdat << std::flush;
-
     dlm_out << ")\n/// " << name << "\n" << std::endl;
     dlm_out.close();
     clog(info) << "Done " << name << std::endl;
@@ -320,12 +310,13 @@ inline void saveMatDepth(const cv::Mat &cln, const std::string name, const std::
     clog(info) << "Creating depth asset: " << path << std::endl;
     
     dlm_out <<
-        "/**\n * Auto-generated depth resource \"" << path << "\" originating from rs depth matrix"         \
-        "\n * Asset \"" << name << "\" created for DUNE Project\n * @author David Schoosleitner"                       \
+        "/**\n * Auto-generated depth resource \"" << path << "\" originating from rs depth matrix"  \
+        "\n * Asset \"" << name << "\" created for DUNE Project\n * @author David Schoosleitner"     \
         "\n * (c) David Schoosleitner 2022\n */\n\n#pragma once\n\n/***** DATA *****/\n" << std::endl;
     dlm_out << "//! Matrix Width\n#define " << name << "_WIDTH (" << s.width << "u)\n" << std::endl;
     dlm_out << "//! Matrix Height\n#define " << name << "_HEIGHT (" << s.height << "u)\n" << std::endl;
-    dlm_out << "//! Matrix Data: Hex format 0x[BBGGRR]0x[....\n#define " << name << "_DATA (short[]{ \\" << std::endl;
+    dlm_out << "//! Matrix Data: Hex format 0x[BBGGRR]0x[....\n#define " << name <<
+        "_DATA (short[]{ \\" << std::endl;
 
     for(int i = 0; i < s.height; i++)
     {

@@ -24,7 +24,7 @@ const static cv::Vec3b purple{255,10,200};
 const static cv::Vec3b orange{20,130,220};
 
 const static cv::Vec3b col_index[DISCRETE_STEPS] = {
-    //black, white, red, yellow, green, blue, dark_blue, black
+    //Out of Range
     black,
     //Ocean has #1-#4
     ocean_blue, ocean_blue * 1.1, shore_blue, shore_blue * 1.2,
@@ -34,7 +34,7 @@ const static cv::Vec3b col_index[DISCRETE_STEPS] = {
     limestone_yellow, limestone_yellow * 1.1, granite_orange, granite_orange * 0.9,
     //Snow plane has #13-#14
     snowy_white, white,
-    //
+    //Out of Range
     black
 };
 
@@ -55,7 +55,7 @@ const static cv::Vec3b beach_index[DISCRETE_STEPS] = {
     //Ocean has #1-#4
     ocean_blue, ocean_blue * 1.1, shore_blue, shore_blue * 1.2,
     //TODO: Is a joke for now
-    black, black, black, black, black, black, black, black, black, black, black
+    limestone_yellow * 0.7, limestone_yellow * 0.9, limestone_yellow, limestone_yellow, limestone_yellow, plains_green * 1.3, plains_green * 1.2, plains_green * 1.1, plains_green, plains_green * 0.9, black
 };
 
 const static cv::Vec3b difference_index[DISCRETE_STEPS] = {
@@ -117,7 +117,7 @@ public:
     }
 
 protected:
-    cv::Mat tmp;
+    cv::Mat m_tmp_matrix;
 
     void start_up() override
     {
@@ -136,23 +136,15 @@ protected:
             index_ptr = (dat < 30 + TEMPORAL_BUFFER_LENGTH) ? col_index : difference_index;
         }
 
-        tmp = std::move(this->m_work_matrix);
-        this->m_work_matrix = cv::Mat(tmp.size(), CV_8UC3);
+        this->m_tmp_matrix = std::move(this->m_work_matrix);
+        this->m_work_matrix = cv::Mat(m_tmp_matrix.size(), CV_8UC3);
 
-        this->m_work_matrix.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos){
-            uchar &c = tmp.at<uchar>(pos);
+        this->m_work_matrix.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos)
+        {
+            uchar &c = this->m_tmp_matrix.at<uchar>(pos);
             pixel = index_ptr[c & ~LINE_MASK];
             pixel *= 1.0 - 0.5 * ((LINE_MASK & c) > 0);
         });
-
-        if(colorize_type == PERLIN || colorize_type == DIFFERENCE)
-        {
-            double dff = TARGET_VOLUME - aRTE_difference_sum;
-            double ratio = dff / (double) (TARGET_VOLUME);
-            std::stringstream ss;
-            ss << "Gleichheit: " << ratio * 100.0 << "%" << std::flush;
-            cv::putText(this->m_work_matrix, ss.str(), cv::Point(CUTOFF_LEFT + 20, CUTOFF_BOT - 20), cv::FONT_HERSHEY_SIMPLEX, 2, white, 6);
-        }
     }
 
 };

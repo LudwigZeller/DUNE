@@ -55,18 +55,19 @@ public:
 
     static void generate_perlin(cv::Mat &ref)
     {
+        //! Specified generator worker
         PerlinWorker perlin_generator{"Generator_Perlin_Worker", true};
+        //!! Transformation and cut workers
         DiscreticiserWorker discreticiser_generator{"Generator_Discreticiser_Worker"};
         ScaleWorker scale_generator{"Generator_Scale_Worker"};
         TranslatorWorker translator_generator{"Generator_Translator_Worker"};
         VisualCutWorker cut_generator{"Generator_Cut_Worker"};
 
-        Worker *generator_queue[] = {
-            &perlin_generator, &discreticiser_generator, &scale_generator, &translator_generator, &cut_generator
-        };
-
+        Worker *generator_queue[] = {&perlin_generator, &discreticiser_generator, &scale_generator,
+            &translator_generator, &cut_generator};
         for(int i = 0; i < 5; i++) generator_queue[i]->start();
 
+        //!! First-pass pipeline iteration
         cv::Mat pass;
         while(pass.empty())
         {
@@ -78,19 +79,23 @@ public:
             }
         }
 
+        //!! First-pass volume elaboration
         unsigned int integr_vol = 0u;
         for(int y = 0; y < STREAM_HEIGHT; y++)
             for(int x = 0; x < STREAM_WIDTH; x++)
             {
                 integr_vol += pass.at<char>(y,x);
             }
-        clog(warn) << "new integr_vol: " << (int) integr_vol << ", with Target: " << TARGET_VOLUME << std::endl;
+        clog(warn) << "new integr_vol: " << (int) integr_vol << ", with Target: " <<
+            TARGET_VOLUME << std::endl;
 
         while(integr_vol > TARGET_VOLUME_UPPER)
         {
+            //!! Reset and downscaling
             integr_vol = 0u;
             perlin_generator.downscale();
             
+            //!! Cyclic pipeline iteration
             pass = cv::Mat{};
             while(pass.empty())
             {
@@ -102,17 +107,20 @@ public:
                 }
             }
 
+            //!! Cyclic volume elaboration
             for(int y = 0; y < STREAM_HEIGHT; y++)
                 for(int x = 0; x < STREAM_WIDTH; x++)
                 {
                     integr_vol += pass.at<char>(y,x);
                 }
             
-            clog(warn) << "new integr_vol: " << (int) integr_vol << ", with Target: " << TARGET_VOLUME << std::endl;
+            clog(warn) << "new integr_vol: " << (int) integr_vol << ", with Target: " <<
+                TARGET_VOLUME << std::endl;
         }
 
         pass = perlin_generator.get_matrix();
-        pass.convertTo(ref, CV_16U, ((double) m_disc_start - (double) m_disc_end) / (double) (m_lin_steps - 1), m_disc_end);
+        pass.convertTo(ref, CV_16U, ((double) m_disc_start - (double) m_disc_end) /
+            (double) (m_lin_steps - 1), m_disc_end);
 
         for(int i = 0; i < 5; i++) generator_queue[i]->stop();
     }
@@ -127,13 +135,6 @@ protected:
 
             siv::PerlinNoise::seed_type seed = (unsigned) std::rand();
             siv::PerlinNoise perlin{seed};
-
-            /*const double downscale_filter[16] = {
-                1.00, 1.000, 0.999, 0.998,
-                0.996, 0.993, 0.995, 0.999,
-                0.997, 0.995, 0.995, 0.998,
-                0.9991, 0.9992, 0.9993, 1.00
-            };*/
             
             m_perlin.forEach<float>([&](float &pixel, const int *pos)
             {
@@ -155,7 +156,9 @@ protected:
             if(!this->is_generator)
                 this->m_work_matrix = m_perlin.clone();
             else
-                m_perlin.convertTo(this->m_work_matrix, CV_16U, ((double) m_disc_start - (double) m_disc_end) / (double) (m_lin_steps - 1), m_disc_end);
+                m_perlin.convertTo(this->m_work_matrix, CV_16U,
+                    ((double) m_disc_start - (double) m_disc_end) /
+                    (double) (m_lin_steps - 1), m_disc_end);
         }   
     }
 };
