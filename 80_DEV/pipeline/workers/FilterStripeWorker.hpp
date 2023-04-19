@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Worker.hpp"
-#define STRIPE_WIDTH 4
 
 /**
  * @brief Project's Filter namespace

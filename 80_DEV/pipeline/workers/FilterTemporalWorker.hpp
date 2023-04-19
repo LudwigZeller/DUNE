@@ -34,13 +34,18 @@ protected:
 
     void work() override
     {
+        //!! Shifting statement
         buffer.front().release();
         std::copy(buffer.begin() + 1, buffer.end(), buffer.begin());
         buffer.back() = this->m_work_matrix.clone();
 
-        for(auto i = buffer.begin(); i + 1 != buffer.end(); i++)
-            this->m_work_matrix += *i;
-        this->m_work_matrix *= i_num_buffer;
+        //!! Summing
+        for(cv::Mat &m : this->buffer)
+            this->m_work_matrix += m;
+
+        //!! Division and rounding
+        this->m_work_matrix.convertTo(this->m_work_matrix, CV_16F, i_num_buffer, 0.40);
+        this->m_work_matrix.convertTo(this->m_work_matrix, CV_8U);
     }
 };
 

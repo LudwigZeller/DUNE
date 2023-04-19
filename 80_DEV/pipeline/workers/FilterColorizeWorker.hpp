@@ -54,7 +54,7 @@ const static cv::Vec3b beach_index[DISCRETE_STEPS] = {
     //Ocean has #1-#4
     ocean_blue, ocean_blue * 1.1, shore_blue, shore_blue * 1.2,
     //TODO: Is a joke for now
-    black, black, black, black, black, black, black, black, black, black, black
+    limestone_yellow * 0.7, limestone_yellow * 0.9, limestone_yellow, limestone_yellow, limestone_yellow, plains_green * 1.3, plains_green * 1.2, plains_green * 1.1, plains_green, plains_green * 0.9, black
 };
 
 const static cv::Vec3b difference_index[DISCRETE_STEPS] = {
@@ -93,6 +93,7 @@ protected:
     COLORIZE_TYPE_e colorize_type = DEFAULT;
     cv::Vec3b const* index_ptr;
     int dat = 0;
+    cv::Mat m_tmp_matrix;
 
 public:
     explicit ColorizeWorker(std::string id, COLORIZE_TYPE_e ctype = DEFAULT): Worker{std::move(id), MatIOType::CHAR_8, MatIOType::VEC_3_CHAR_8}, colorize_type(ctype)
@@ -116,7 +117,6 @@ public:
     }
 
 protected:
-    cv::Mat tmp;
 
     void start_up() override
     {
@@ -135,11 +135,11 @@ protected:
             index_ptr = (dat < PERLIN_LINGER_LENGTH + TEMPORAL_BUFFER_LENGTH) ? col_index : difference_index;
         }
 
-        tmp = std::move(this->m_work_matrix);
-        this->m_work_matrix = cv::Mat(tmp.size(), CV_8UC3);
+        m_tmp_matrix = std::move(this->m_work_matrix);
+        this->m_work_matrix = cv::Mat(m_tmp_matrix.size(), CV_8UC3);
 
         this->m_work_matrix.forEach<cv::Vec3b>([&](cv::Vec3b &pixel, const int *pos){
-            uchar &c = tmp.at<uchar>(pos);
+            uchar &c = m_tmp_matrix.at<uchar>(pos);
             pixel = index_ptr[c & ~LINE_MASK];
             pixel *= 1.0 - 0.5 * ((LINE_MASK & c) > 0);
         });

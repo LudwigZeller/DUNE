@@ -1,71 +1,144 @@
-#pragma once
+/*****************************************
+|      ____    _  _   _   _   ____       |
+|     |  _ \  | || | | \ | | |  __|      |
+|     | | \ \ | || | |  \| | | |_        |
+|     | | | | | || | |     | |  _|       |
+|     | |_/ / | || | | |\  | | |__       |
+|     |____/  \____/ |_| \_| |____|      |
+|                                        |
+|   DUNE - Sandbox Depth Visualizer      |
+|  A project by                          |
+|  Ludwig Zeller and David Schoosleitner |
+|                                        |
+|****************************************|
+|                                        |
+| @file FileDifferenceWorker.hpp         |
+| @author David Schoosleitner            |
+|                                        |
+| This file is responsible for:          |
+|  - Difference Filter class definition  |
+| This file depends on:                  |
+|  - Worker superclass                   |     
+|  - OpenCV Library                      |
+|  - Local Utilities                     |
+|                                        |
+|****************************************|
+|                                        |
+| USED LIBRARIES ARE PROPERTY OF THEIR   |
+| CORRESPECTIVE OWNERS.                  |
+|                                        |
+| SEE COPYRIGHT.md IN PROJECT'S ROOT     |
+| DIRECTORY, AS WELL AS                  |
+| INDIVIDUAL LICENSES AND TOS.           |
+|                                        |
+*****************************************/
 
+#ifndef __FILTER_DIFFERENCE_WORKER_HPP_
+#define __FILTER_DIFFERENCE_WORKER_HPP_
+
+
+/*****************************************
+|               INCLUDES                 |
+*****************************************/
 #include "../Worker.hpp"
-#include "../../assetRTE.hpp"
 
-/**
- * @brief Project's Filter namespace
-*/
-namespace Filter {
 
-/**
- * @class DiscreticiserWorker : public Worker
- * @brief Discretization of meter data. 
-*/
+/***********************
+ *  NAMESPACE Filter  *
+ **********************
+ * @namespace Filter
+ * @brief Collection of project's filters
+***********************/
+namespace Filter
+{
+
+/***********************
+ * CLASS DifferenceWorker
+ **********************
+ * @class DifferenceWorker : Worker
+ * @brief Test Test_c is a class for XYZ.
+***********************/
 class DifferenceWorker : public Worker
 {
-protected:
+
+private:
+
+    //! (Type: CV_8UC) Storage for first frame
     cv::Mat m_reference;
-    bool save_first = true;
-    bool linger_frame;
-    int val_linger_frame = 0;
+    //! Flag that triggers a saving action and switches to false upon saving
+    bool m_save_flag = true;
+    //! Flag for Perlin mode, passes raw input matrix during starting phases
+    bool m_do_linger_frames;
+    //! Delay statement, will trigger saving and return to regular difference mode upon approaching 0
+    int m_linger_ticks = 0;
 
 public:
-    explicit DifferenceWorker(std::string id, bool linger_frame = false): Worker(std::move(id), MatIOType::CHAR_8, MatIOType::CHAR_8), linger_frame(linger_frame)
+
+    /**
+     * @fn explicit DifferenceWorker(std::string _id, bool _do_linger_frames = false)
+     * @brief Constructor of DifferenceWorker objects. Calls superclass constructor and determines linger frame flag
+     * @param _id Worker name-id
+     * @param _do_linger_frames Perlin mode flag | true = perlin mode | false = normal mode
+     */
+    explicit DifferenceWorker(std::string _id, bool _do_linger_frames = false): Worker(std::move(_id), MatIOType::CHAR_8, MatIOType::CHAR_8), m_do_linger_frames(_do_linger_frames)
     { /* No extra construction required */ }
 
+    /**
+     * @fn void reset_save()
+     * @brief Resets all flags 
+     */
     void reset_save()
     {
-        this->save_first = true;
+        this->m_save_flag = true;
         //! Statement irrelevant in normal mode
-        if(linger_frame) val_linger_frame = PERLIN_LINGER_LENGTH + TEMPORAL_BUFFER_LENGTH;
+        if(m_do_linger_frames) 
+        {
+            m_linger_ticks = PERLIN_LINGER_LENGTH + TEMPORAL_BUFFER_LENGTH;
+        }
     }
 
 protected:
+
+    /**
+     * @fn void reset_save() override
+     * @brief Resets all flags upon pipeline startup
+     */
     void start_up() override
     {
-        this->save_first = true;
-        if(linger_frame) val_linger_frame = PERLIN_LINGER_LENGTH + TEMPORAL_BUFFER_LENGTH;
+        reset_save();
     }
 
+    /**
+     * @fn void reset_save() override
+     * @brief Cyclic Difference Worker procedure
+     */
     void work() override
     {
+        //! Submatrix rectangle
+        const static cv::Rect frame_rect{CUTOFF_LEFT, CUTOFF_TOP, CUTOFF_RIGHT - CUTOFF_LEFT + 1, CUTOFF_BOT - CUTOFF_TOP + 1};
+
         //!! Statement to save the first available Frame, has secondary delay statement
         //!! when in "Perlin mode"
-        if(save_first && !(linger_frame && val_linger_frame >= PERLIN_LINGER_LENGTH))
+        if(m_save_flag && !(m_do_linger_frames && m_linger_ticks >= PERLIN_LINGER_LENGTH))
         {
-            this->save_first = false;
-            this->m_reference = this->m_work_matrix.clone();
+            this->m_save_flag = false;
+            this->m_reference = this->m_work_matrix(frame_rect).clone();
         }
 
-        //!! Statement irrelevant in normal mode
-        if(val_linger_frame) val_linger_frame--;
-        if(!val_linger_frame)
+        //!! Statements irrelevant in normal mode
+        if(!(--m_linger_ticks))
+        {
         //^^
 
-            for(int y = CUTOFF_TOP; y <= CUTOFF_BOT; y++)
-                for(int x = CUTOFF_LEFT; x <= CUTOFF_RIGHT; x++)
-                {
-                    signed char &value_is = this->m_work_matrix.at<signed char>(y,x);
-                    const signed char &value_should = this->m_reference.at<signed char>(y,x);
-
-                    value_is = (value_should > 0 && value_should < DISCRETE_STEPS - 1) ?
-                        (___min_(14, ___max_(1, 7 - value_is + value_should))) :
-                        value_should;
-                }
+            this->m_work_matrix(frame_rect).forEach<signed char>([&](signed char &value_is, const int *pos)
+            {
+                value_is = ___min_(14, ___max_(1, 7 - value_is + this->m_reference.at<signed char>(pos[0], pos[1])));
+            });
+        }
     }
 
+}; //< class DifferenceWorker
 
-};
+}; //< namespace Filter
 
-};
+#endif //< __FILTER_DIFFERENCE_WORKER_HPP_

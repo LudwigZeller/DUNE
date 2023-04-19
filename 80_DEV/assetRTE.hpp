@@ -15,7 +15,7 @@ typedef struct aRTE_point_bool
 } aRTE_point_bool;
 
 extern std::vector<aRTE_point_bool> aRTE_bc_trees;
-extern std::vector<aRTE_point_bool> aRTE_palms;
+extern std::vector<aRTE_point_bool> aRTE_be_palms;
 
 #define __ARTE_INIT_ \
 std::vector<aRTE_point_bool> aRTE_bc_trees{20}; \

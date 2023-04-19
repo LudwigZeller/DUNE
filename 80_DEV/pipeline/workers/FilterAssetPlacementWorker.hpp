@@ -26,7 +26,6 @@ public:
     AssetPlacementWorker(std::string _id, const Asset_Type _asset_type, const int width, const int height, const char *data): Worker(std::move(_id), MatIOType::VEC_3_CHAR_8, MatIOType::VEC_3_CHAR_8),
         asset_type(_asset_type)
     {
-        
         tree = dres_asset_to_color_mat(width, height, data);
 
         for(int i = 0; i < get_kernel(_asset_type).size(); i++)
@@ -52,7 +51,8 @@ protected:
         for(aRTE_point_bool &r : get_kernel(asset_type))
         {
             if(r.b)
-                this->m_work_matrix(r.r).forEach<cv::Vec3b>([&](cv::Vec3b &p, const int *pos){
+                this->m_work_matrix(r.r).forEach<cv::Vec3b>([&](cv::Vec3b &p, const int *pos)
+                {
                     cv::Vec3b &r = this->tree.at<cv::Vec3b>(pos);
                     p = (r != bl) ? r : p;
                 });

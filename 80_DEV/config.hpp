@@ -59,6 +59,8 @@
 #define PERLIN_LINGER_LENGTH            (30)            //< Amount of time that the perlin image stays on screen
 
 #define CUTOFF_TOP                      (53)            //< Visual Cut Dimensions
-#define CUTOFF_BOT                      (681)           //< Visual Cut Dimensions
+#define CUTOFF_BOT                      (686)           //< Visual Cut Dimensions
 #define CUTOFF_LEFT                     (250)           //< Visual Cut Dimensions
 #define CUTOFF_RIGHT                    (1100)          //< Visual Cut Dimensions
+
+#define STRIPE_WIDTH 4
