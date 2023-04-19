@@ -12,18 +12,18 @@ cv::Mat frame_to_mat(const rs2::frame &f) {
     const int h = vf.get_height();
 
     if (f.get_profile().format() == RS2_FORMAT_BGR8) {
-        return {Size(w, h), CV_8UC3, (void *) f.get_data(), Mat::AUTO_STEP};
+        return Mat{Size(w, h), CV_8UC3, (void *) f.get_data(), Mat::AUTO_STEP}.clone();
     } else if (f.get_profile().format() == RS2_FORMAT_RGB8) {
-        auto r_rgb = Mat(Size(w, h), CV_8UC3, (void *) f.get_data(), Mat::AUTO_STEP);
+        auto r_rgb = Mat{Size(w, h), CV_8UC3, (void *) f.get_data(), Mat::AUTO_STEP};
         Mat r_bgr;
         cvtColor(r_rgb, r_bgr, COLOR_RGB2BGR);
-        return r_bgr;
+        return r_bgr.clone();
     } else if (f.get_profile().format() == RS2_FORMAT_Z16) {
-        return {Size(w, h), CV_16UC1, (void *) f.get_data(), Mat::AUTO_STEP};
+        return Mat{Size(w, h), CV_16UC1, (void *) f.get_data(), Mat::AUTO_STEP}.clone();
     } else if (f.get_profile().format() == RS2_FORMAT_Y8) {
-        return {Size(w, h), CV_8UC1, (void *) f.get_data(), Mat::AUTO_STEP};
+        return Mat{Size(w, h), CV_8UC1, (void *) f.get_data(), Mat::AUTO_STEP}.clone();
     } else if (f.get_profile().format() == RS2_FORMAT_DISPARITY32) {
-        return {Size(w, h), CV_32FC1, (void *) f.get_data(), Mat::AUTO_STEP};
+        return Mat{Size(w, h), CV_32FC1, (void *) f.get_data(), Mat::AUTO_STEP}.clone();
     }
     throw std::runtime_error("Frame format is not supported!");
 }
