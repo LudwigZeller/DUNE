@@ -13,6 +13,10 @@ namespace Filter {
 */
 class LineWorker : public Worker
 {
+protected:
+    cv::Mat m_temp_stor;
+    cv::Rect m_mat_frame{CUTOFF_LEFT, CUTOFF_TOP, CUTOFF_RIGHT - CUTOFF_LEFT + 1, CUTOFF_BOT - CUTOFF_TOP + 1};
+
 public:
     explicit LineWorker(std::string id): Worker{std::move(id), MatIOType::CHAR_8, MatIOType::CHAR_8}
     { /* No extra construction required */ }
@@ -25,16 +29,20 @@ protected:
 
     void work() override
     {
-        const static cv::Rect line_proc_rect{CUTOFF_LEFT, CUTOFF_TOP, CUTOFF_RIGHT - CUTOFF_LEFT + 1, CUTOFF_BOT - CUTOFF_TOP + 1};
+        this->m_temp_stor = this->m_work_matrix(m_mat_frame).clone();
+        this->m_work_matrix(m_mat_frame).forEach<uchar>([&](uchar &pixel, const int *pos){
+            int ym = ___min_(pos[0] + __ldetail, m_temp_stor.rows - 1);
+            int xm = ___min_(pos[1] + __ldetail, m_temp_stor.cols - 1);
+            int yn = ___max_(pos[0] - __ldetail, 0);
+            int xn = ___max_(pos[1] - __ldetail, 0);
 
-        this->m_work_matrix(line_proc_rect).forEach<uchar>([&](uchar &pixel, const int *pos)
-        {
-            int rt = pixel < (this->m_work_matrix.at<uchar>(pos[0] - __ldetail, pos[1]) % (DISCRETE_STEPS)) ||
-                     pixel < (this->m_work_matrix.at<uchar>(pos[0] + __ldetail, pos[1]) % (DISCRETE_STEPS)) ||
-                     pixel < (this->m_work_matrix.at<uchar>(pos[0], pos[1] - __ldetail) % (DISCRETE_STEPS)) ||
-                     pixel < (this->m_work_matrix.at<uchar>(pos[0], pos[1] + __ldetail) % (DISCRETE_STEPS));
+            uchar &cmp = this->m_temp_stor.at<uchar>(pos);
+            int rt = 
+                   cmp < this->m_temp_stor.at<uchar>(yn,pos[1])
+                || cmp < this->m_temp_stor.at<uchar>(ym,pos[1])
+                || cmp < this->m_temp_stor.at<uchar>(pos[0],xn)
+                || cmp < this->m_temp_stor.at<uchar>(pos[0],xm);
             
-            //! LINE_MASK = 0x40
             pixel |= LINE_MASK * rt;
         });
     }

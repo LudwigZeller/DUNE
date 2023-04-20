@@ -98,8 +98,9 @@ __ARTE_INIT_ int main(int argc, char **argv)
 
     std::srand((unsigned)std::time(nullptr));
     std::cout << "Starting DepthCamera, running in " << std::this_thread::get_id() << std::endl;
+    clog(err) << "Heheheha" << std::endl;
 
-    Provider *camera_provider;// = new CameraProvider{"Camera_Provider"};
+    Provider *camera_provider = new CameraProvider{"Camera_Provider"};
 
     //!! Test provider is activated upon passing an argument
     if(argc > 1)
