@@ -56,7 +56,8 @@ namespace Filter
  * CLASS DifferenceWorker
  **********************
  * @class DifferenceWorker : Worker
- * @brief Test Test_c is a class for XYZ.
+ * @brief Having Char 8 input and output, it saves the first frame and compares it with the current
+ * @brief via subtraction to evaluate a difference image.
 ***********************/
 class DifferenceWorker : public Worker
 {
@@ -126,7 +127,8 @@ protected:
         }
 
         //!! Statements irrelevant in normal mode
-        if(!(--m_linger_ticks))
+        if(m_do_linger_frames && m_linger_ticks) m_linger_ticks--;
+        else
         {
         //^^
 

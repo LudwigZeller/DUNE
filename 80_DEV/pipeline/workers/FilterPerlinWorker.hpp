@@ -53,15 +53,38 @@ public:
         });
     }
 
+    static void add_frame_ledge(cv::Mat &perl)
+    {
+        const cv::Rect cutoff_rect{CUTOFF_LEFT - translation_vec.x, CUTOFF_TOP - translation_vec.y, CUTOFF_RIGHT - CUTOFF_LEFT + 1, CUTOFF_BOT - CUTOFF_TOP + 1};
+        const static float fact1 = 0.018;
+        const static float fact2 = 0.08;
+        float dist_x = CUTOFF_RIGHT - CUTOFF_LEFT;
+        float dist_y = CUTOFF_BOT - CUTOFF_TOP;
+
+        perl(cutoff_rect).forEach<float>([&](float &pixel, const int *pos)
+        {
+            float val_x = std::exp(-fact2 * (float) pos[1]) + std::exp(fact2 * ((float) pos[1] - dist_x));
+            float val_y = std::exp(-fact2 * (float) pos[0]) + std::exp(fact2 * ((float) pos[0] - dist_y));
+            float val = std::fmax(val_x, val_y);
+
+            pixel = 14.0 * val + pixel * (1.0 - val);
+        });
+    }
+
     static void generate_perlin(cv::Mat &ref)
     {
         //! Specified generator worker
         PerlinWorker perlin_generator{"Generator_Perlin_Worker", true};
+        perlin_generator.set_do_warn(false);
         //!! Transformation and cut workers
         DiscreticiserWorker discreticiser_generator{"Generator_Discreticiser_Worker"};
+        discreticiser_generator.set_do_warn(false);
         ScaleWorker scale_generator{"Generator_Scale_Worker"};
+        scale_generator.set_do_warn(false);
         TranslatorWorker translator_generator{"Generator_Translator_Worker"};
+        translator_generator.set_do_warn(false);
         VisualCutWorker cut_generator{"Generator_Cut_Worker"};
+        cut_generator.set_do_warn(false);
 
         Worker *generator_queue[] = {
             &perlin_generator, &discreticiser_generator, &scale_generator, &translator_generator, &cut_generator
@@ -88,7 +111,8 @@ public:
             {
                 integr_vol += pass.at<char>(y,x);
             }
-        clog(info) << "new integr_vol: " << (int) integr_vol << ", with Target: " << TARGET_VOLUME << std::endl;
+        pass.convertTo(ref, CV_16U, ((double) m_disc_start - (double) m_disc_end) / (double) (m_lin_steps - 1), m_disc_end);
+        clog(info) << "Initial integr_vol: " << (int) integr_vol << ", with Target: " << TARGET_VOLUME << " (" << (100.0 * integr_vol / TARGET_VOLUME) << "%)" << std::endl;
 
         while(integr_vol > TARGET_VOLUME_UPPER)
         {
@@ -115,10 +139,13 @@ public:
                     integr_vol += pass.at<char>(y,x);
                 }
             
-            clog(info) << "new integr_vol: " << (int) integr_vol << ", with Target: " << TARGET_VOLUME << std::endl;
+            pass.convertTo(ref, CV_16U, ((double) m_disc_start - (double) m_disc_end) / (double) (m_lin_steps - 1), m_disc_end);
         }
 
+        clog(info) << "Final integr_vol: " << (int) integr_vol << ", with Target: " << TARGET_VOLUME << " (" << (100.0 * integr_vol / TARGET_VOLUME) << "%)" << std::endl;
+
         pass = perlin_generator.get_matrix();
+        add_frame_ledge(pass);
         pass.convertTo(ref, CV_16U, ((double) m_disc_start - (double) m_disc_end) / (double) (m_lin_steps - 1), m_disc_end);
 
         for(int i = 0; i < 5; i++) generator_queue[i]->stop();

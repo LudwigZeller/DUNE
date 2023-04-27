@@ -23,9 +23,11 @@
 #include <librealsense2/hpp/rs_frame.hpp>
 #include <time.h>
 
-enum log_type { info, warn, err };
-inline std::ostream &clog(log_type &&lt)
+inline std::ofstream file_out{"debug_output.log", std::ios_base::openmode::_S_app};
+enum log_type { info, warn, err, app, none, /* NOTE: Does not use ANSI, no "std::cerr" option! */ file };
+inline std::ostream &clog(log_type lt)
 {
+    static log_type last_lt = lt;
     time_t sys_time;
     struct tm *local_time;
     time( &sys_time );
@@ -35,6 +37,16 @@ inline std::ostream &clog(log_type &&lt)
     int sys_minu = local_time->tm_min;
     int sys_seco = local_time->tm_sec;
 
+    if(lt == log_type::app)
+    {
+        lt = last_lt;
+    }
+    if(lt == log_type::none)
+    {
+        return last_lt == err ? std::cerr : std::cout;
+    }
+    last_lt = lt;
+
     switch(lt)
     {
     case info:
@@ -43,6 +55,8 @@ inline std::ostream &clog(log_type &&lt)
         return std::cout << "\033[33m[WARNING @ " << sys_hour << 'h' << sys_minu << 'm' << sys_seco << "s] ";
     case err:
         return std::cerr << "\033[31m[ERROR @ " << sys_hour << 'h' << sys_minu << 'm' << sys_seco << "s] ";
+    case file:
+        return file_out << std::flush << "[FILEOUT @ " << sys_hour << 'h' << sys_minu << 'm' << sys_seco << "s] ";
     }
     return std::cout;
 } 
@@ -348,7 +362,7 @@ inline void mat_meta_translate(cv::Mat &m, cv::Point2i translate)
     };
 
     cv::Mat tmp = std::move(m);
-    m = cv::Mat::zeros(tmp.size(), CV_8U);
+    m = cv::Mat::zeros(tmp.size(), tmp.type());
     cv::copyTo(tmp(src), m(dst), cv::Mat());
 }
 

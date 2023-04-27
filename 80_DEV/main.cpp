@@ -79,7 +79,7 @@
 #include <chrono>
 #include <regex>
 
-cv::Point2i translation_vec = {-22, -15};
+cv::Point2i translation_vec = {3, -21};
 cv::Size scalar_kernel = {(int)(STREAM_WIDTH), (int)(0.993 * STREAM_HEIGHT)};
 volatile bool stay_in_calib = true;
 
@@ -97,8 +97,7 @@ __ARTE_INIT_ int main(int argc, char **argv)
      ******************/
 
     std::srand((unsigned)std::time(nullptr));
-    std::cout << "Starting DepthCamera, running in " << std::this_thread::get_id() << std::endl;
-    clog(err) << "Heheheha" << std::endl;
+    clog(info) << "Starting DepthCamera, running in " << std::this_thread::get_id() << std::endl;
 
     Provider *camera_provider = new CameraProvider{"Camera_Provider"};
 
@@ -236,7 +235,7 @@ __ARTE_INIT_ int main(int argc, char **argv)
     pipeline_perlin.push_worker(&window_worker);
 
     //! Default Pipeline = Smooth Filter
-    pipeline_blockcraft.start();
+    pipeline_smooth.start();
 
     /*******************
      * MAIN LOOP & WEB *
@@ -266,23 +265,23 @@ __ARTE_INIT_ int main(int argc, char **argv)
         switch (filter)
         {
         case Data::Filter::NORMAL:
-            clog(info) << "SMOOTH FILTER PIPELINE" << std::endl;
+            clog(none) << "SMOOTH FILTER PIPELINE" << std::endl;
             pipeline_smooth.start();
             break;
         case Data::Filter::BLOCKCRAFT:
-            clog(info) << "BLOCKCRAFT FILTER PIPELINE" << std::endl;
+            clog(none) << "BLOCKCRAFT FILTER PIPELINE" << std::endl;
             pipeline_blockcraft.start();
             break;
         case Data::Filter::DIFFERENCE:
-            clog(info) << "DIFFERENCE FILTER PIPELINE" << std::endl;
+            clog(none) << "DIFFERENCE FILTER PIPELINE" << std::endl;
             pipeline_difference.start();
             break;
         case Data::Filter::STRIPE:
-            clog(info) << "STRIPE FILTER PIPELINE" << std::endl;
+            clog(none) << "STRIPE FILTER PIPELINE" << std::endl;
             pipeline_stripe.start();
             break;
         case Data::Filter::PERLIN:
-            clog(info) << "PERLIN FILTER PIPELINE" << std::endl;
+            clog(none) << "PERLIN FILTER PIPELINE" << std::endl;
             pipeline_perlin.start();
             break;
         }
@@ -292,6 +291,7 @@ __ARTE_INIT_ int main(int argc, char **argv)
     pipeline_smooth.stop();
     pipeline_difference.stop();
     pipeline_stripe.stop();
+    pipeline_perlin.stop();
 #else
     //!! Deprecated
     int state = twindow.get_dat();

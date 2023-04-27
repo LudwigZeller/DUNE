@@ -61,10 +61,10 @@ const static cv::Vec3b difference_index[DISCRETE_STEPS] = {
     //black
     black,
     //below = red
-    red, red * 0.8, red * 0.65, red * 0.5, red * 0.3, red * 0.1, black,
+    red, red * 0.9, red * 0.7, red * 0.6, red * 0.5, red * 0.3, black,
     //middle = none
     //above = green
-    black, green * 0.1, green * 0.3, green * 0.5, green * 0.65, green * 0.8, green,
+    black, green * 0.3, green * 0.5, green * 0.6, green * 0.7, green * 0.9, green,
     //black
     black
 };

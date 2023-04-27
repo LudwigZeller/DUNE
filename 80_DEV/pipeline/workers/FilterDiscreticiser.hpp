@@ -16,8 +16,8 @@ class DiscreticiserWorker : public Worker
 {
 protected:
     // Todo: These parameters 
-    const short m_disc_start = 1150;
-    const short m_disc_end = 1350;
+    const short m_disc_start = DISCRETE_START;
+    const short m_disc_end = DISCRETE_END;
     const short m_lin_steps = DISCRETE_STEPS;
     cv::Mat m_tmp_matrix;
     bool m_do_capture = false;
@@ -33,14 +33,14 @@ protected:
 
     void work() override
     {
-        if(this->m_do_capture)
+        if(this->m_do_capture) [[unlikely]]
         {
             this->m_do_capture = false;
             dres_save_depth_mat("output", this->m_work_matrix);
         }
 
         const static double _scalc1 = this->m_disc_end - m_disc_start;
-        const static double _scalc2 = ((double)this->m_lin_steps - 2.0) / _scalc1;
+        const static double _scalc2 = 1.0 / (_scalc1 / ((double)this->m_lin_steps - 2.0));
 
         this->m_tmp_matrix = std::move(this->m_work_matrix);
         this->m_work_matrix = cv::Mat(this->m_tmp_matrix.size(), CV_8U);

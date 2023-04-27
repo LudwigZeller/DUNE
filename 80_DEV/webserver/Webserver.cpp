@@ -48,7 +48,7 @@ void Webserver::listen(uint16_t port) {
             int addrlen = sizeof(address);
             int open_socket = accept(m_socket_fd, (struct sockaddr *) &address, (socklen_t *) &addrlen);
             char buffer[1024] = {0};
-            read(open_socket, buffer, 1024);
+            (void)read(open_socket, buffer, 1024);
             std::string request(buffer);
             std::cout << "------------ INCOMING REQUEST ------------\n"
                       << request << std::endl;

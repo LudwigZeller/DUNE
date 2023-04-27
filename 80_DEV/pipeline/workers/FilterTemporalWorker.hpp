@@ -44,7 +44,7 @@ protected:
             this->m_work_matrix += m;
 
         //!! Division and rounding
-        this->m_work_matrix.convertTo(this->m_work_matrix, CV_16F, i_num_buffer, 0.40);
+        this->m_work_matrix.convertTo(this->m_work_matrix, CV_16F, i_num_buffer, -0.8);
         this->m_work_matrix.convertTo(this->m_work_matrix, CV_8U);
     }
 };

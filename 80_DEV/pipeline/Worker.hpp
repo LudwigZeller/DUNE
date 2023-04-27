@@ -28,6 +28,7 @@ private:
     SharedMatrix m_output;
     std::atomic_bool m_running = false;
     std::thread m_thread;
+    std::atomic_bool m_do_warn = true;
 
 protected:
     cv::Mat m_work_matrix;
@@ -67,7 +68,7 @@ public:
     bool push(cv::Mat &&matrix) {
         std::lock_guard<std::mutex> lock(m_input.mutex);
         bool already_occupied = false;
-        if (m_input.is_new) {
+        if (m_input.is_new && this->m_do_warn) {
             clog(warn) << this->get_id() << ": Input Matrix provided while one is in queue! - Worker too slow?" << std::endl;
             already_occupied = true;
         }
@@ -107,7 +108,7 @@ public:
                     this->m_work_matrix = std::move(this->m_input.matrix);
                 }
                 this->work();
-                if (this->m_output.is_new)
+                if (this->m_output.is_new && this->m_do_warn)
                     clog(warn) << this->get_id() << ": Output Matrix was not picked up! - Error in Pipeline?"
                                << std::endl;
                 {
@@ -136,6 +137,14 @@ public:
      * @return Worker ID
      */
     [[nodiscard]] std::string get_id() const { return m_id; }
+
+    /**
+     * @fn 
+     */
+    void set_do_warn(const bool _do_warn)
+    {
+        this->m_do_warn = _do_warn;
+    }
 };
 
 
