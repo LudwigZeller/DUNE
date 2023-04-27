@@ -79,7 +79,7 @@
 #include <chrono>
 #include <regex>
 
-cv::Point2i translation_vec = {3, -21};
+cv::Point2i translation_vec = {3, -5};
 cv::Size scalar_kernel = {(int)(STREAM_WIDTH), (int)(0.993 * STREAM_HEIGHT)};
 volatile bool stay_in_calib = true;
 
